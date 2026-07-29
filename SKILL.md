@@ -1,10 +1,65 @@
 ---
 name: utools-dev
-description: uTools 插件开发规范。当项目含 plugin.json、用户提及 uTools/utools 开发、编写 preload.js 时激活。
-keywords: [utools, ubrowser, preload.js, plugin.json, uTools插件]
+description: uTools 插件开发规范与 API 参考
+keywords: [utools, ubrowser, preload.js, plugin.json, utools插件]
 ---
 
 # uTools 插件开发规范
+
+## 环境背景
+
+- uTools **基于 Electron 构建**，插件运行在 Electron 环境中
+- 底层 Chromium **91**（V8 9.1）+ Node.js **14**，ES2021 及以下特性均可使用；ES2022+ 特性以 Chromium 91 实际支持为准，不确定时标注"需验证"
+- uTools 插件**通常不需要考虑跨浏览器兼容性问题**，仅在涉及特定 Chromium 版本不支持的特性时才需检查
+
+## 角色定义
+
+你同时具备以下两个专家角色的能力。根据用户问题涉及的领域，激活对应的角色视角来回答。
+
+### Agent 1：uTools 插件开发专家
+
+**职责**：回答 uTools 插件开发全流程问题，提供可直接运行的示例代码和配置。
+
+**核心领域**：
+- `utools.*` 全系列 API（事件、窗口、数据存储、AI、ubrowser 等）
+- `plugin.json` 配置（features/cmds、tools、development 字段）
+- `preload.js` 编写与 CommonJS 规范
+- 三种模板模式（无 UI / 列表 / 文档）
+- 构建配置（Vite + Vue、React + webpack）
+- 数据存储（db / dbStorage / dbCryptoStorage）
+- 发布打包与市场审核流程
+
+**行为准则**：
+1. 遇到 `utools.*` / `ubrowser.*` / `plugin.json` / `preload.js` 相关问题时，**必须先查阅** `references/uTools-Dev-Doc.md` 对应章节再回答
+2. 涉及实际项目中可能踩坑的地方（如 iframe 中 API 调用、路径引用、依赖处理），同步查阅 `references/uTools-Plugin-Dev-Record.md`
+3. 给出的代码示例必须是完整、可直接运行的；涉及配置时说明配置项的意图而非仅贴代码
+
+### Agent 2：Electron 开发专家
+
+**职责**：回答涉及 Electron 底层能力的问题，明确 uTools 封装与原生 Electron API 的边界。
+
+**核心领域**：
+- `BrowserWindow` 创建与窗口配置（transparent、frame、alwaysOnTop 等）
+- IPC 通信（`ipcRenderer.on` / `webContents.send` / `utools.sendToParent`）
+- Node.js 原生模块（`fs`、`path`、`crypto`、`child_process`）
+- 进程模型（preload 脚本环境、渲染进程、沙箱限制）
+- 系统对话框（`showOpenDialog`、`showSaveDialog`）
+- 剪贴板（`clipboard`、`nativeImage`）
+- 屏幕 API（`screen`、`desktopCaptureSources`）
+- 软件更新与原生能力
+
+**行为准则**：
+1. 明确区分 **uTools 封装的 API**（如 `utools.createBrowserWindow`）与 **原生 Electron API**（如 `new BrowserWindow`），优先使用 uTools 封装
+2. 涉及版本敏感特性时，以 **Chromium 91 + Node.js 14** 为基准判断可用性，不确定时明确标注"需验证"
+3. 解释 Electron 机制时（如 preload 沙箱、contextIsolation），说明其原理但不要求用户修改 uTools 固有行为
+
+### 角色切换规则
+
+| 用户问题涉及 | 激活角色 |
+|-------------|---------|
+| `plugin.json`、`preload.js`、`utools.*` API、`ubrowser`、三种模板模式、构建配置、打包发布 | Agent 1：uTools 插件开发专家 |
+| `BrowserWindow`、IPC、Node.js 原生模块、屏幕/录屏、系统对话框、剪贴板、桌面能力 | Agent 2：Electron 开发专家 |
+| 在 uTools 插件中如何使用某项 Node.js / Electron 能力 | 双角色协同：Electron 专家提供能力边界和可用 API，uTools 专家给出在插件结构中接入的具体方式 |
 
 ## 开发参考
 提供完整 API 文档路径（utools.*、ubrowser.*）、preload.js CommonJS 约束、plugin.json 配置要点。
@@ -38,67 +93,155 @@ API 参考：
 
 ## Vite + Vue 项目结构（现代前端开发）
 
-### 目录规范
+### 目录规范（推荐）
+
+静态文件（`plugin.json` / `preload.js` / `logo.png`）放在 `public/` 文件夹，Vite 构建时会自动复制到 `dist/`：
+
 ```
-background-removal/
-├── public/                    # 静态资源，构建时原样复制到 dist/
+project/
+├── public/                     # 静态文件，构建时自动复制到 dist/
 │   ├── plugin.json
 │   ├── preload.js
 │   └── logo.png
-├── src/                       # Vue 源码
+├── dist/                       # 构建产物（可拖入开发者工具打包）
+├── src/                        # Vue 源码
 │   ├── components/
 │   ├── composables/
 │   ├── App.vue
 │   └── main.ts
-├── index.html                 # Vite 入口
+├── index.html                  # Vite 入口
 ├── vite.config.ts
 └── package.json
 ```
 
-### vite.config.ts 关键配置
+根目录的 `plugin.json` 中 `main` 直接写 `"index.html"`，不需要特殊处理。
+
+### vite.config.ts 关键配置（推荐）
+
 ```typescript
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import { resolve } from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
+
+// 可选：构建前检查 plugin.json 是否合法
+// uTools 解析 JSON 时不支持 BOM 头，且格式错误会直接报错
+const validatePluginJson = (): Plugin => ({
+  name: 'validate-plugin-json',
+  enforce: 'pre',
+  buildStart() {
+    const p = path.resolve(process.cwd(), 'public', 'plugin.json')
+    const buf = fs.readFileSync(p)
+    if (buf.length >= 3 && buf[0] === 0xEF && buf[1] === 0xBB && buf[2] === 0xBF) {
+      throw new Error('plugin.json 含 BOM，uTools 会解析失败')
+    }
+    JSON.parse(buf.toString('utf8'))
+  },
+})
 
 export default defineConfig({
-  base: './',                   // 必须，适配 uTools file:// 协议
-  plugins: [vue()],
+  plugins: [vue(), validatePluginJson()],
+  base: './',
+  publicDir: 'public',             // public/ 中的文件构建时自动复制到 dist/
   build: {
     outDir: 'dist',
-    rollupOptions: {
-      input: resolve(__dirname, 'index.html'),
-      output: {
-        entryFileNames: 'assets/[name].js',
-        chunkFileNames: 'assets/[name].js',
-        assetFileNames: 'assets/[name].[ext]'
-      }
-    }
-  }
+    emptyOutDir: true,
+    target: 'es2022',              // 匹配 Chromium 91 的 JS 支持范围
+  },
+  server: {
+    host: '127.0.0.1',
+    port: 5173,
+    strictPort: true,              // 端口被占用时报错，不自动换端口
+  },
 })
 ```
+
+关键点：
 - `base: './'` — 必须，适配 uTools 的 `file://` 协议
-- `outDir: 'dist'` — 构建产物输出目录
-- 构建产物路径使用 `assets/[name].js` 避免缓存问题
+- `publicDir: 'public'` — 利用 Vite 内置功能自动复制静态文件，无需额外插件
+- `validatePluginJson` 插件 — 可选，构建前检查 `plugin.json` 是否合法（防 BOM、防格式错误）
+- `target: 'es2022'` — 明确构建目标，匹配 Chromium 91 支持范围
+- `strictPort: true` — 端口被占用时报错而不是自动换端口，避免混淆
+- `emptyOutDir: true` — 每次构建前清空 dist/，防止残留旧文件
 
 ### 开发流程
 1. `pnpm dev` 启动开发服务器
-2. plugin.json 增加 `development.main` 指向 `http://localhost:5173`
+2. `plugin.json` 增加 `development.main` 指向 `http://localhost:5173`
 3. uTools 开发者工具 → 接入开发
+
+> **调试**：进入插件后按 `Ctrl+Shift+I` 打开开发者工具；在开发者工具中开启"退出到后台立即结束运行"，确保每次重新进入都加载最新代码。
 
 ### 构建与发布流程
 1. `pnpm build` → 产物输出到 `dist/`
-2. public/ 内容自动复制到 dist/
-3. preload 依赖安装到 dist/ 同级（不打包，源码可读）
-4. 在开发者工具中选择 `dist/plugin.json` 打包
+2. `public/` 中的 `plugin.json` / `preload.js` / `logo.png` 自动复制到 `dist/`
+3. 确保 `dist/` 内有 `package.json`（内容 `{ "type": "commonjs" }`），否则 preload.js 的 `require` 会报错
+4. preload 的 Node.js 依赖安装到 `dist/` 同级（不编译不打包，源码清晰可读）
+5. 在开发者工具中选择 `dist/plugin.json` 打包
 
 ### preload.js 依赖处理
 | 类型 | 处理方式 |
 |------|---------|
 | 前端依赖（vue、element-plus） | 正常 npm 安装，Vite 自动打包 |
-| Node.js 依赖（background-removal-node、sharp 等） | 源码放在 preload.js 同级 node_modules，不编译不打包 |
+| Node.js 依赖（fs-extra、sharp等原生模块） | 源码放在 preload.js 同级 node_modules，不编译不打包 |
 
-## preload.js 常见陷阱
+### 附录：另一种方案（静态文件放项目根目录）
+
+若不想用 `public/` 文件夹，也可将 `plugin.json` / `preload.js` / `logo.png` 放在**项目根目录**，通过 `vite-plugin-static-copy` 插件复制到 `dist/`。这种方式需要额外处理 `plugin.json` 的 `main` 路径。
+
+```
+project/
+├── dist/
+├── src/
+├── index.html
+├── plugin.json                # 根目录 → 构建时复制到 dist/
+├── preload.js                 # 根目录 → 构建时复制到 dist/
+├── icon.png                   # 根目录 → 构建时复制到 dist/
+├── vite.config.ts
+└── package.json
+```
+
+根目录的 `plugin.json` 中 `main` 写 `"dist/index.html"`（开发模式），构建后通过钩子改为 `"index.html"`（打包模式）。
+
+```typescript
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import { viteStaticCopy } from 'vite-plugin-static-copy'
+import { readFileSync, writeFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { dirname, resolve } from 'node:path'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
+export default defineConfig({
+  base: './',
+  plugins: [
+    vue(),
+    viteStaticCopy({
+      targets: [
+        { src: 'plugin.json', dest: '.' },
+        { src: 'preload.js', dest: '.' },
+        { src: 'icon.png', dest: '.' }
+      ]
+    }),
+    {
+      name: 'fix-dist-plugin-json-main',
+      closeBundle() {
+        const p = resolve(__dirname, 'dist', 'plugin.json')
+        const json = JSON.parse(readFileSync(p, 'utf8'))
+        json.main = 'index.html'
+        writeFileSync(p, JSON.stringify(json, null, 2), 'utf8')
+      }
+    }
+  ],
+  build: { outDir: 'dist', emptyOutDir: true }
+})
+```
+
+> `closeBundle` 钩子是必要步骤——文件复制到 `dist/` 后，`plugin.json` 的 `main` 从 `"dist/index.html"` 改为 `"index.html"`，否则 uTools 会去 `dist/dist/index.html` 找入口。
+
+推荐 `public/` 方案，少一个依赖、少一段钩子代码。
+
+## preload.js 开发要点
 
 ### 模块导入
 ```js
@@ -110,11 +253,11 @@ const fs = require('fs')
 ```
 
 ### package.json type 字段
-同级目录必须存在 `package.json` 且设置 `"type": "commonjs"`：
+preload.js 同级目录必须存在 `package.json` 且设置 `"type": "commonjs"`：
 ```json
 { "type": "commonjs" }
 ```
-否则 Node.js 可能以 ESM 模式解析导致 require 报错。
+否则 Node.js 可能以 ESM 模式解析导致 `require` 报错。若使用 `public/` 方案，需确保构建后的 `dist/` 目录也有此文件。
 
 ### iframe 中 API 调用
 HTML 中嵌入 iframe 时，uTools API 在 iframe 中不可用：
@@ -127,7 +270,9 @@ window.parent.preload.yourMethod()
 ### 文件路径引用
 开发中涉及文件地址引用**使用相对地址**，uTools 打包后绝对路径失效。
 
-## features.cmds 匹配指令类型
+## plugin.json 配置参考
+
+### features.cmds 匹配指令类型
 
 | type 值 | 用途 | 示例 |
 |---------|------|------|
@@ -138,7 +283,7 @@ window.parent.preload.yourMethod()
 | `over` | 任意文本匹配 | `[{ "type": "over", "label": "文本处理" }]` |
 | `window` | 活动窗口匹配 | `[{ "type": "window", "match": { "app": ["chrome.exe"] } }]` |
 
-## plugin.json development 字段（开发模式）
+### development 字段（开发模式）
 
 开发阶段配置热更新入口：
 ```json
@@ -149,6 +294,29 @@ window.parent.preload.yourMethod()
 }
 ```
 构建发布前需移除或注释此字段。
+
+### tools 字段（AI Agent 工具）
+
+`plugin.json` 的 `tools` 字段可将插件能力暴露给 AI Agent（如 Claude Code、OpenClaw 等），需搭配 preload.js 中的 `utools.registerTool` 运行时注册：
+
+```json
+{
+  "tools": {
+    "tool_name": {
+      "description": "工具功能描述",
+      "inputSchema": { "type": "object", "properties": { ... } }
+    }
+  }
+}
+```
+
+详见 `references/uTools-Dev-Doc.md` 中"tools 配置"章节。
+
+### AI Agent 专用模式（无 UI）
+
+当插件仅服务 AI Agent 时，可采用最小配置：
+- **无需** `main` 字段和 `features` 数组
+- **必需** `logo`、`preload`、`tools`
 
 ## 移植第三方库 checklist
 

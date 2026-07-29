@@ -5,15 +5,17 @@ uTools 插件开发的 AI skill —— 让 AI 助手（Claude / OpenAI Codex / O
 ## 内容
 
 ```
-├── SKILL.md                        # Skill 定义（触发条件 + API 速览 + 关键约束）
+├── SKILL.md                        # Skill 定义（角色定义 + API 速览 + 关键约束 + Vite 配置）
 ├── references/
 │   ├── uTools-Dev-Doc.md           # uTools API 完整参考（utools.* / ubrowser.*）
+│   ├── uTools-Server-API.md        # uTools 服务端 API（用户信息、支付）
 │   └── uTools-Plugin-Dev-Record.md # 开发实战记录（模板 / 进阶 / 最佳实践）
 ```
 
-- **SKILL.md** — 定义 skill 的触发条件（检测到 `plugin.json`、用户提及 uTools 开发时自动激活），提供核心 API 速览表格和关键约束（preload.js CommonJS 规范、plugin.json 配置要点）
-- **uTools-Dev-Doc.md** — 完整的 uTools API 文档，涵盖事件、窗口、数据库、浏览器、AI、媒体等模块
-- **uTools-Plugin-Dev-Record.md** — 社区开发实战记录，包括：
+- **SKILL.md** — 定义 skill 的触发条件和角色体系，提供核心 API 速览、关键约束、Vite 项目配置
+- **uTools-Dev-Doc.md** — 完整的 uTools API 文档，涵盖事件、窗口、数据库、ubrowser、AI、FFmpeg 等
+- **uTools-Server-API.md** — 服务端 API 文档（获取用户信息、订单查询、支付回调）
+- **uTools-Plugin-Dev-Record.md** — 社区开发实战记录
   - 开发基础知识（plugin.json / preload.js / 基础 API）
   - 三种模板模式（无 UI / 列表 / 文档）的完整示例代码
   - 传统前端开发（纯 HTML/CSS/JS + `utools.db`）

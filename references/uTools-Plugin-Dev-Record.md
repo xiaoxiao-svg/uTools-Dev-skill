@@ -205,6 +205,8 @@ uTools 提供了3种开发模板，分别是无 UI 模式、列表模式和文�
 
 在根目录创建文件type.d.ts，粘贴代码进去，会有语法提示，方便快速开发 uTools 插件
 
+> 以下三种模板模式使用 `window.exports` 旧 API 风格（`mode: "none"` / `mode: "list"` / `mode: "doc"`），该方式仍有效。新项目也可选择标准 HTML 页面 + `utools.onPluginEnter` 的开发方式，参考 SKILL.md 中的核心 API 速览。
+
 ### 无 UI 模式
 
 最简单的插件开发模式，不推荐，原因：`大概率会打回，此类插件作用都可以使用脚本代替，做成插件的意义不大`，可作为练习学习，或者前往【自动化脚本】，该插件核心逻辑即为无UI模式插件（脚本就是preload.js，推测脚本运行在函数中，Window 对象为公用模板调用，对后续 `preload.js` 的使用会有深入的认识）
@@ -1066,14 +1068,13 @@ module.exports = {
 **项目结构：**
 ```
 ├── public/                  # 静态资源（plugin.json、preload.js、logo.png）
+│                            # Vite 构建时自动复制到 dist/
 ├── src/
 │   ├── components/
 │   ├── composables/
 │   ├── App.vue
 │   └── style.css
 ├── index.html               # Vite 入口
-├── plugin.json              # 复制到 dist/
-├── preload.js               # 复制到 dist/
 ├── vite.config.ts
 └── package.json
 ```
@@ -1082,33 +1083,33 @@ module.exports = {
 ```typescript
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import { resolve } from 'path'
-import { copyFileSync } from 'fs'
+import fs from 'node:fs'
+import path from 'node:path'
 
+// 可选：构建前检查 plugin.json 是否合法
 export default defineConfig({
-  plugins: [
-    vue(),
-    // 构建完成后自动复制静态文件到 dist/
-    { name: 'copy-public', closeBundle() {
-      ;['plugin.json', 'preload.js', 'logo.png'].forEach(f =>
-        copyFileSync(resolve(__dirname, 'public', f), resolve(__dirname, 'dist', f)))
-    }}
-  ],
+  plugins: [vue()],
   base: './',
+  publicDir: 'public',          // public/ 中的文件自动复制到 dist/
   build: {
     outDir: 'dist',
-    rollupOptions: {
-      input: resolve(__dirname, 'index.html'),
-      output: { entryFileNames: 'assets/[name].js' }
-    }
-  }
+    emptyOutDir: true,
+  },
+  server: {
+    host: '127.0.0.1',
+    port: 5173,
+    strictPort: true,
+  },
 })
 ```
 
+> 注意：`plugin.json` 的 `main` 字段写 `"index.html"` 即可，无需前缀路径。静态文件（`plugin.json` / `preload.js` / `logo.png`）放 `public/` 下，Vite 构建时自动复制到 `dist/`。
+
 **构建与打包流程：**
-1. 开发：`npm run dev`，`plugin.json` 中 `main` 指向 `http://localhost:5173`
-2. 构建：`npm run build`，产物输出到 `dist/`
-3. 将 `dist/` 目录拖入 uTools 开发者工具 → 打包
+1. 开发：`npm run dev`，`plugin.json` 中 `development.main` 指向 `http://localhost:5173`
+2. 构建：`npm run build`，产物输出到 `dist/`，`public/` 中的静态文件自动复制
+3. 确保 `dist/` 内有 `package.json`（`{ "type": "commonjs" }`）
+4. 在开发者工具中选择 `dist/plugin.json` 打包
 
 **第三方依赖处理：**
 
