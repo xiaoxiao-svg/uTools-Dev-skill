@@ -241,6 +241,78 @@ export default defineConfig({
 
 推荐 `public/` 方案，少一个依赖、少一段钩子代码。
 
+## 项目初始化
+
+当用户需要**创建新 uTools 插件项目**时，先让用户选择模板：
+
+### 模板选择
+
+| | 默认 Vite 模板 | uTools Vite 模板（落雨大佬开发） |
+|---|---|---|
+| 来源 | 本 skill 内置 | gitee: q2316367743/vite-utools-template |
+| 依赖量 | 极少（仅 vue + vite） | 较重（+tdesign+pinia+unocss+...） |
+| UI 库 | 无（自选） | TDesign Vue Next |
+| 路由/状态 | 无（自选） | Vue Router + Pinia |
+| preload | 手写 | 完整 API 代理层（inject.js） |
+| 构建输出 | dist/ | src-utools/dist/ |
+| 适合 | 简单插件、学习、定制 | 复杂交互、需要成熟 UI 组件 |
+
+向用户展示上述对比，默认推荐**默认 Vite 模板**。用户明确选择后再进入对应初始化流程。
+
+> 💡 **如果选错了怎么办**：两个模板可以互相切换。如果 clone uTools Vite 模板后觉得太重，删除当前目录重新选择默认 Vite 模板即可；反之亦然。
+
+### 默认 Vite 模板初始化流程
+
+> 如果你已经熟悉 uTools 开发，可以跳过步骤 1-5 直接创建项目骨架。
+
+按本文件"Vite + Vue 项目结构"章节的结构创建项目：
+
+1. 创建目录结构（public/ + src/ + index.html + vite.config.ts + package.json）
+2. 配置 `vite.config.ts`（base: './'、publicDir、target 等）
+3. 编写 `public/plugin.json`（main/preload/logo/features）
+4. 编写 `public/preload.js`（CommonJS，挂载到 window.preload）
+5. 编写 `src/main.ts` + `src/App.vue`（最小可运行示例）
+6. 安装依赖：`pnpm install`
+7. 开发：`pnpm dev`，配置 `development.main` 热更新
+8. 构建：`pnpm build`，产物在 `dist/`
+9. 打包：在 uTools 开发者工具中选择 `dist/plugin.json`
+
+**验证清单**（完成后逐项确认）：
+- [ ] `pnpm dev` 能正常启动，浏览器可打开 `http://localhost:5173`
+- [ ] `pnpm build` 成功，`dist/` 内存在 `plugin.json` / `preload.js` / `index.html`
+- [ ] 在 uTools 开发者工具中能正常加载 `dist/plugin.json`
+
+### uTools Vite 模板初始化流程
+
+> 如果你已经熟悉 uTools 开发，可以跳过步骤 4-8 的详细说明。
+
+1. 克隆模板：`git clone https://gitee.com/q2316367743/vite-utools-template.git <项目名>`
+2. 进入目录：`cd <项目名>`
+3. 安装依赖：`pnpm install`
+4. 检查安全漏洞：`pnpm audit`
+   - 预期结果：模板依赖版本可能落后，通常仅报 low/moderate 级别警告，可忽略
+   - 如果报 critical 级别，请反馈给仓库维护者或选择默认 Vite 模板
+5. 修改项目信息：
+   - `src/global/Constant.ts` — 修改项目名、版本等字段
+   - `src-utools/plugin.json` — 修改 `name`/`title`/`description`/`features.cmds`
+   - `src-utools/public/logo.png` — 替换为插件图标（256×256）
+6. 按需修改 `src-utools/preload.js` 和 `src-utools/src/inject.js`
+   - 如果只是验证模板能否跑通，可以跳过本步
+   - 如果需要自定义 preload 能力，参考 inject.js 中已封装的模块（shell/dialog/os/window/ai/db）
+7. 开发：`pnpm dev`
+8. 构建：`pnpm build`（产物在 `src-utools/dist/`）
+9. 打包：在 uTools 开发者工具中选择 `src-utools/dist/plugin.json`
+
+> ⚠️ **关于该模板**：
+> - preload.js 封装了完整 API 代理层（shell/dialog/os/window/ai/db 等），适合复杂场景；若插件功能简单，可按需删减
+> - 模板内含 `AGENTS.md`，包含强约束规则（如禁止 `any`、强制使用 TDesign、文件行数限制等），使用前请阅读并判断是否适合你的团队
+> - 该模板同时支持 uTools 和 ZTools 双平台
+
+**验证清单**（完成后逐项确认）：
+- [ ] `pnpm dev` 能正常启动，浏览器可打开 `http://localhost:5173`
+- [ ] `pnpm build` 成功，`src-utools/dist/` 内存在 `plugin.json` / `preload.js` / `index.html`
+- [ ] 在 uTools 开发者工具中能正常加载 `src-utools/dist/plugin.json`
+
 ## preload.js 开发要点
 
 ### 模块导入

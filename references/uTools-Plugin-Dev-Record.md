@@ -1118,6 +1118,24 @@ export default defineConfig({
 | 前端依赖（vue、element-plus） | 正常 npm 安装，构建工具自动打包 |
 | Node.js 依赖（fs-extra、sqlite3、bcrypt） | 模块放在 `preload.js` 同级，不编译不打包，源码清晰可读 |
 
+#### 社区模板：vite-utools-template
+
+社区开发者 [q2316367743](https://gitee.com/q2316367743) 提供了一个功能更完整的模板 [vite-utools-template](https://gitee.com/q2316367743/vite-utools-template)，适合复杂交互场景。
+
+该模板**与本路线默认方案的详细对比、初始化流程和验证清单，统一以 SKILL.md 的"项目初始化"章节为准**。本节仅补充差异概览：
+
+| | 默认方案（上方） | uTools Vite 模板（落雨大佬开发） |
+|---|---|---|
+| 构建输出 | dist/ | src-utools/dist/ |
+| UI 库 | 无（自选） | TDesign Vue Next |
+| 路由/状态管理 | 无（自选） | Vue Router + Pinia |
+| 样式方案 | 无（自选） | UnoCSS + Less |
+| preload.js | 手写最小实现 | 完整 API 代理层（inject.js） |
+| 平台兼容 | 仅 uTools | uTools + ZTools 双平台 |
+| 依赖数量 | ~5 | ~25 |
+
+> ⚠️ 该模板依赖较重，简单插件建议用上方默认方案。
+
 ---
 
 ## 附录
