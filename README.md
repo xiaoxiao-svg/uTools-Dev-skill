@@ -47,6 +47,7 @@ uTools 插件开发的 AI skill —— 让 AI 助手（Claude / OpenAI Codex / O
 - [uTools 开发者文档](https://u.tools/docs/developer/api.html)
 - [uTools 官方类型定义](https://github.com/uTools-Labs/utools-api-types)
 - [uTools 密码管理器（官方开源示例）](https://github.com/uTools-Labs/utools-upassword)
+- [vite-utools-template（落雨大佬开发的 Vite + Vue 模板）](https://gitee.com/q2316367743/vite-utools-template)
 
 ## License
 
