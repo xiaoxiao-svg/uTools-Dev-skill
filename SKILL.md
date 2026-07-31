@@ -1,10 +1,32 @@
 ---
 name: utools-dev
 description: uTools 插件开发规范与 API 参考
-keywords: [utools, ubrowser, preload.js, plugin.json, utools插件]
+keywords: [utools, ubrowser, preload.js, plugin.json, utools插件, uTools开发, uTools数据库, uTools打包, uTools发布, uTools调试, uTools构建, vite utools]
 ---
 
 # uTools 插件开发规范
+
+## 使用方式
+
+### 如何唤起本 Skill
+
+直接在对话中描述你的需求，常见问法：
+
+| 场景 | 提问示例 |
+|------|---------|
+| 创建新项目 | "帮我创建一个 uTools 插件项目" |
+| 查询 API 用法 | "utools.db.put 怎么用？"、"如何监听插件进入事件？" |
+| 配置问题 | "plugin.json 的正则匹配怎么配？"、"如何设置子输入框？" |
+| 代码报错 | "preload.js 报错 require is not defined"、"打包后白屏" |
+| 构建/打包 | "Vite 构建后路径不对"、"如何打包发布？" |
+| 数据存储 | "两次 db 操作有什么限制？"、"dbStorage 和 db 有什么区别？" |
+| Electron 能力 | "如何创建独立窗口？"、"如何调用系统对话框？" |
+
+### 我是新手，如何开始？
+
+1. 安装 [uTools](https://www.u.tools/download/) 和 [uTools 开发者工具](https://www.u.tools/plugins/detail/uTools%20%E5%BC%80%E5%8F%91%E8%80%85%E5%B7%A5%E5%85%B7/)
+2. 告诉我"帮我创建一个新的 uTools 插件项目"，我会引导你选择模板并生成骨架
+3. 按照生成的验证清单逐项确认
 
 ## 环境背景
 
@@ -61,6 +83,28 @@ keywords: [utools, ubrowser, preload.js, plugin.json, utools插件]
 | `BrowserWindow`、IPC、Node.js 原生模块、屏幕/录屏、系统对话框、剪贴板、桌面能力 | Agent 2：Electron 开发专家 |
 | 在 uTools 插件中如何使用某项 Node.js / Electron 能力 | 双角色协同：Electron 专家提供能力边界和可用 API，uTools 专家给出在插件结构中接入的具体方式 |
 
+## 能力边界
+
+### 本 Skill 擅长
+- uTools 插件开发全流程（环境搭建 → 编码 → 构建 → 打包 → 发布）
+- `utools.*` / `ubrowser.*` API 用法与配置
+- preload.js 编写、plugin.json 配置
+- Electron 底层能力在插件中的接入方式
+- 数据存储（db / dbStorage / dbCryptoStorage）的使用规范
+
+### 本 Skill 不覆盖
+- **uTools 主程序本身的 Bug 或功能限制**：如遇到 uTools 崩溃、API 未按文档行为工作等问题，建议前往 [uTools 官方论坛](https://www.u-tools.cn/) 或 uTools 开发群中向群主反馈
+- **纯前端框架问题**：Vue/React 自身的运行时错误、框架版本冲突等，需结合框架官方文档排查
+- **原生 Node.js 模块编译**：如 sharp、sqlite3 等需要编译 C++ addon 的模块在插件中的适配，本 Skill 仅提供原则性指导
+- **插件市场审核被拒后的申诉**：审核结果以 uTools 官方为准，本 Skill 无法预判
+
+### 超出范围时的处理
+当遇到以下情况时，我会明确告知你"这超出了本 Skill 的可靠知识范围"，并给出建议方向：
+- API 行为与文档描述不一致（可能是 uTools 版本差异）
+- 涉及 uTools 未公开的内部机制
+- 需要反编译或修改 uTools 主程序才能实现的功能
+- 问题描述模糊、无法确定是 uTools 层还是框架层的问题
+
 ## 开发参考
 提供完整 API 文档路径（utools.*、ubrowser.*）、preload.js CommonJS 约束、plugin.json 配置要点。
 仅遇到具体 API 用法疑问时再查阅 reference 文件，避免每次加载全部读取。
@@ -68,8 +112,14 @@ keywords: [utools, ubrowser, preload.js, plugin.json, utools插件]
 API 参考：
 `references/uTools-Dev-Doc.md`
 
+服务端 API 参考：
+`references/uTools-Server-API.md`
+
 开发记录参考：
 `references/uTools-Plugin-Dev-Record.md`
+
+常见问题：
+`references/uTools-FAQ.md`
 
 遇到 `utools.*` / `ubrowser.*` / `plugin.json` / `preload.js` 相关问题时，**必须先查阅该文档对应章节**再回答（API 使用、uTools开发等官方规范问题查看 API 参考，实际可能遇到的问题查看开发记录参考）。
 

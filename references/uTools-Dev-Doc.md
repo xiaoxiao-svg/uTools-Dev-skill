@@ -1,5 +1,11 @@
 # uTools 开发者文档
 
+> **国内访问提示**：以下文档中引用的部分外部链接（electronjs.org、developer.mozilla.org、github.com 等）可能需要代理访问。国内替代方案：
+> - Electron 文档 → [Electron 中文网](https://electronjs.cn)
+> - MDN Web Docs → [MDN 中文镜像](https://developer.mozilla.org/zh-CN)
+> - npm → [淘宝镜像](https://npmmirror.com)
+> - GitHub → [Gitee](https://gitee.com) 或 [ghproxy](https://ghproxy.com)
+
 ## 一、开发流程
 
 ### 1.1 快速开始
@@ -2331,54 +2337,6 @@ uTools 提供了本地数据库的 API，通过它可以实现一些简单的数
 > **不受限操作**（读操作）：`get`、`allDocs`、`getItem`、`getAttachment`、`getAttachmentType`、`replicateStateFromCloud` 等读操作可任意调用。
 >
 > **注意**：`bulkDocs` 本身也是写操作，连续两次 `bulkDocs` 之间同样需要 ≥ 300ms 间隔。
->
-> **规避方案**：
-> - 批量写入使用 `utools.db.bulkDocs(docs)` 合并为一次操作，而非循环调用 `put`
-> - 必须连续写入时，使用队列 + 时间戳守卫，确保相邻写操作间隔 ≥ 350ms（留余量）
-> - 高频变化数据请写入本地文件，不要写入同步数据库
->
-> ```js
-> // ❌ 错误：循环快速写入，间隔 < 300ms → 触发卡死
-> items.forEach(doc => utools.db.put(doc))
->
-> // ✅ 正确：合并为一次 bulkDocs 操作
-> utools.db.bulkDocs(items)
->
-> // ✅ 正确：队列 + 时间守卫（适用于所有写操作）
-> // 注意：需使用单例模式，多个队列实例各自独立计时仍可能触发卡死
-> class DbQueue {
->   constructor(minInterval = 350) {
->     this.queue = []
->     this.minInterval = minInterval
->     this.lastOpTime = 0
->     this.timer = null
->   }
->   push(operation) {
->     this.queue.push(operation)
->     this._schedule()
->   }
->   _schedule() {
->     if (this.timer) return
->     const now = Date.now()
->     const wait = Math.max(0, this.minInterval - (now - this.lastOpTime))
->     this.timer = setTimeout(() => {
->       this.timer = null
->       const op = this.queue.shift()
->       if (op) {
->         op() // 执行写操作，如 () => utools.db.put(doc)
->         this.lastOpTime = Date.now()
->       }
->       if (this.queue.length) this._schedule()
->     }, wait)
->   }
-> }
-> // 使用示例：
-> const queue = new DbQueue()
-> queue.push(() => utools.db.put(doc1))
-> queue.push(() => utools.db.remove(doc2))
-> queue.push(() => utools.dbStorage.setItem('key', value))
-> // 异步版本（utools.db.promises.*）同样受 300ms 约束，队列模式适用
-> ```
 
 > **警告 - 请避免将高频变化的临时性数据写入同步数据库。**
 >
