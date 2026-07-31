@@ -1,3 +1,64 @@
+## ⚠️ 高频踩坑：db 操作间隔过短导致 uTools 卡死
+
+**现象**：插件连续调用 `utools.db.put` / `remove` / `bulkDocs` / `postAttachment` 等写操作，且两次操作间隔 < 300ms 时，uTools 数据存储模块进入无限同步循环，主进程 CPU 占满，界面完全卡死，只能通过任务管理器结束进程。
+
+**影响范围**：`utools.db.*`（put / remove / bulkDocs / postAttachment）、`utools.dbStorage.*`（setItem / removeItem）、`utools.dbCryptoStorage.*`（setItem / removeItem）的所有写操作均受此约束。读操作（get / allDocs / getItem 等）不受限制。
+
+> 详细 API 参考和代码示例见 `references/uTools-Dev-Doc.md` 的"数据存储"章节。
+
+**根因**：uTools 底层在每次 db 写操作后触发同步检测，如果下一次写操作在 300ms 内到达，会被判定为"数据持续变化"而反复触发重同步，形成死循环。
+
+**规避方案**：
+
+1. **批量写入优先**：多条数据写入用 `bulkDocs` 一次完成，而非循环 `put`
+2. **队列 + 时间守卫**：必须逐条写入时，使用队列确保相邻操作间隔 ≥ 350ms（留余量）
+3. **高频数据写文件**：剪贴板历史、鼠标轨迹、日志等高频变化数据写入本地文件，不写入同步数据库
+
+```js
+// ❌ 危险：快速连续写入
+items.forEach(doc => utools.db.put(doc))
+
+// ✅ 安全：批量写入（bulkDocs 本身也是写操作，连续 bulkDocs 之间同样需要 ≥ 300ms 间隔）
+utools.db.bulkDocs(items)
+
+// ✅ 安全：带时间守卫的写入队列（适用于所有写操作：put / remove / bulkDocs / dbStorage.setItem 等）
+// 注意：需使用单例模式，多个队列实例各自独立计时仍可能触发卡死
+class DbQueue {
+  constructor(minInterval = 350) {
+    this.queue = []
+    this.minInterval = minInterval
+    this.lastOpTime = 0
+    this.timer = null
+  }
+  push(operation) {
+    this.queue.push(operation)
+    this._schedule()
+  }
+  _schedule() {
+    if (this.timer) return
+    const now = Date.now()
+    const wait = Math.max(0, this.minInterval - (now - this.lastOpTime))
+    this.timer = setTimeout(() => {
+      this.timer = null
+      const op = this.queue.shift()
+      if (op) {
+        op() // 执行写操作，如 () => utools.db.put(doc)
+        this.lastOpTime = Date.now()
+      }
+      if (this.queue.length) this._schedule()
+    }, wait)
+  }
+}
+// 使用示例：
+const queue = new DbQueue()
+queue.push(() => utools.db.put(doc1))
+queue.push(() => utools.db.remove(doc2))
+queue.push(() => utools.dbStorage.setItem('key', value))
+// 异步版本（utools.db.promises.*）同样受 300ms 约束，队列模式适用
+```
+
+---
+
 ## 开发基础知识
 
 ### utools基础文件

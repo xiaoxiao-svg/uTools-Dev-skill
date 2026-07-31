@@ -2319,6 +2319,67 @@ uTools 提供了本地数据库的 API，通过它可以实现一些简单的数
 
 > 注意：在多个设备编辑同一个数据库文档时，将产生冲突，数据库会统一选择一个版本作为最终版本，为了尽可能避免冲突，应该将内容合理的分散在多个文档，而不是都存放在一个数据库文档中。
 
+> ⚠️ **严重警告：两次 db 写操作间隔必须 ≥ 300ms**
+>
+> 连续两次 db 写操作之间的时间间隔**不能小于 300ms**。如果小于该阈值，会触发 uTools 底层数据存储的无限同步循环，导致 uTools 主进程卡死、界面无响应。
+>
+> **影响范围**（写操作）：
+> - `utools.db.*`：`put`、`remove`、`bulkDocs`、`postAttachment`（含 `utools.db.promises.*` 异步版本）
+> - `utools.dbStorage.*`：`setItem`、`removeItem`
+> - `utools.dbCryptoStorage.*`：`setItem`、`removeItem`
+>
+> **不受限操作**（读操作）：`get`、`allDocs`、`getItem`、`getAttachment`、`getAttachmentType`、`replicateStateFromCloud` 等读操作可任意调用。
+>
+> **注意**：`bulkDocs` 本身也是写操作，连续两次 `bulkDocs` 之间同样需要 ≥ 300ms 间隔。
+>
+> **规避方案**：
+> - 批量写入使用 `utools.db.bulkDocs(docs)` 合并为一次操作，而非循环调用 `put`
+> - 必须连续写入时，使用队列 + 时间戳守卫，确保相邻写操作间隔 ≥ 350ms（留余量）
+> - 高频变化数据请写入本地文件，不要写入同步数据库
+>
+> ```js
+> // ❌ 错误：循环快速写入，间隔 < 300ms → 触发卡死
+> items.forEach(doc => utools.db.put(doc))
+>
+> // ✅ 正确：合并为一次 bulkDocs 操作
+> utools.db.bulkDocs(items)
+>
+> // ✅ 正确：队列 + 时间守卫（适用于所有写操作）
+> // 注意：需使用单例模式，多个队列实例各自独立计时仍可能触发卡死
+> class DbQueue {
+>   constructor(minInterval = 350) {
+>     this.queue = []
+>     this.minInterval = minInterval
+>     this.lastOpTime = 0
+>     this.timer = null
+>   }
+>   push(operation) {
+>     this.queue.push(operation)
+>     this._schedule()
+>   }
+>   _schedule() {
+>     if (this.timer) return
+>     const now = Date.now()
+>     const wait = Math.max(0, this.minInterval - (now - this.lastOpTime))
+>     this.timer = setTimeout(() => {
+>       this.timer = null
+>       const op = this.queue.shift()
+>       if (op) {
+>         op() // 执行写操作，如 () => utools.db.put(doc)
+>         this.lastOpTime = Date.now()
+>       }
+>       if (this.queue.length) this._schedule()
+>     }, wait)
+>   }
+> }
+> // 使用示例：
+> const queue = new DbQueue()
+> queue.push(() => utools.db.put(doc1))
+> queue.push(() => utools.db.remove(doc2))
+> queue.push(() => utools.dbStorage.setItem('key', value))
+> // 异步版本（utools.db.promises.*）同样受 300ms 约束，队列模式适用
+> ```
+
 > **警告 - 请避免将高频变化的临时性数据写入同步数据库。**
 >
 > 反复创建、删除、修改文档会导致同步过程中产生大量变更记录，增加冲突检测、版本确认和数据传输次数，会严重影响用户的同步速度和使用体验。

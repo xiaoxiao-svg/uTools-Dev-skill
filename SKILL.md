@@ -90,6 +90,7 @@ API 参考：
 - `plugin.json` 是唯一入口配置文件，`features.cmds` 定义搜索指令
 - 正则表达式中的反斜杠 `\` 需写成 `\\`
 - 发布前检查移除 `.git/`、`.vscode/`、`*.js.map`、`*.css.map`
+- **两次 db 操作之间的时间间隔不能小于 300ms**，否则会触发 uTools 数据存储无限循环，导致 uTools 卡死无响应（包括 `utools.db.*`、`utools.dbStorage.*`、`utools.dbCryptoStorage.*` 的所有写操作）
 
 ## Vite + Vue 项目结构（现代前端开发）
 
