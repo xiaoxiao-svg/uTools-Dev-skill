@@ -1,12 +1,12 @@
 ## 开发基础知识
 
-### utools基础文件
+### uTools 基础文件
 
 开发一个 uTools 插件时，需要创建一些文件以实现插件的功能，以下是一些基础文件功能展示，下面四项插件缺一不可：
 
 #### 1、plugin.json：
 
-`plugin.json`是插件的核心文件，它包含了插件的元数据和配置信息。该文件用于指定插件的名称、版本、作者、描述、依赖项和其他配置项。定义了插件的入口文件，通常是index.html文件。
+`plugin.json`是插件的核心文件，它包含了插件的元数据和配置信息。该文件用于指定插件的名称、版本、作者、描述、依赖项和其他配置项。定义了插件的入口文件，通常是 index.html 文件。
 
 #### 2、logo.png：
 
@@ -20,11 +20,11 @@
 
 #### 3、index.html：
 
-正常的HTML页面，插件显示的页面文件，位置需要相对于 `plugin.json` 的路径(即与定义的入口文件路径一致)
+正常的 HTML 页面，插件显示的页面文件，位置需要相对于 `plugin.json` 的路径(即与定义的入口文件路径一致)
 
 #### 4、preload.js：
 
-`preload.js`文件是一个特殊的JavaScript文件，它可以在uTools启动时预加载插件。在此文件中可以访问 `nodejs`、`electron`、`uTools` 提供的 api，并挂载到 `window` 对象中，这样其他普通的 javascript 代码就可以使用这些 api。
+`preload.js` 文件是一个特殊的 JavaScript 文件，它在插件页面加载前执行。在此文件中可以访问 `nodejs`、`electron`、`uTools` 提供的 API，并挂载到 `window` 对象中，这样其他普通的 JavaScript 代码就可以使用这些 API。
 
 ##### 获取文件对象
 
@@ -43,20 +43,20 @@ window.preload = {
 
 ##### 注意事项：
 
-0、开发中涉及 文件地址引用 使用 【相对地址】
+1、开发中涉及 文件地址引用 使用 【相对地址】
 
-1、不能在HTML页面中引用该文件，仅需在`plugin.json`中添加即可
+2、不能在 HTML 页面中引用该文件，仅需在`plugin.json`中添加即可
 
-```markdown
+```
 # 引用页面后控制台如下报错：
 Uncaught ReferenceError:require is not defined at preload.js:1
 ```
 
-2、导入模块时不能使用 `{ }` 导入模块
+3、导入模块时不能使用 `{ }` 导入模块
 
 > **错误示范**：`const { fs } = require('fs');` 正确导入：`const fs = require('fs');`
 
-3、Html里面嵌入了另一个html，uTools的API不生效
+4、Html 里面嵌入了另一个 html，uTools 的 API 不生效
 
 ```javascript
 //可以在iframe中拿到parent，然后就可以使用API了
@@ -72,19 +72,19 @@ window.parent.utools.redirect('备忘录')
 
 以上文件是开发 uTools 插件的基本文件，每个文件都有其特定的作用和功能。通过这些文件，可以实现插件的各种功能和特性。
 
-### uTools开发文档：
+### uTools 开发文档：
 
-[快速上手 | uTools 开发文档 | 开发过程中遇到问题可参考官网demo](https://u.tools/docs/developer/api.html)
+[快速上手 | uTools 开发文档 | 开发过程中遇到问题可参考官网 demo](https://u.tools/docs/developer/api.html)
 
-### uTools插件开发工具
+### uTools 插件开发工具
 
-插件应用市场搜索：uTools开发者工具
+插件应用市场搜索：uTools 开发者工具
 
 进入到开发者工具，填入基本信息即可快速创建一个基础的项目：[参考官网示例完成第一个插件！](https://u.tools/docs/developer/welcome.html)
 
 ### uTools API
 
-下面给出常用API的示例说明，具体可查文档注释
+下面给出常用 API 的示例说明，具体可查文档注释
 
 #### onPluginEnter(callback) 
 
@@ -138,7 +138,7 @@ if (user) {
 
 #### utools.showOpenDialog()
 
-> uTools 提供的文件选择，选择文件时不会隐藏插件，造成使用体验割裂
+> uTools 提供的文件选择，选择文件时不会隐藏插件，不会造成使用体验割裂
 
 备注说明：如需获取文件对象，可使用 `preload.js` 拿到选择的文件对象
 
@@ -162,7 +162,7 @@ if (selectedFiles) {
 
 注意事项：
 
-1、示例中的 `"{{MatchedFiles[0].path}}"` 为快捷命令 API，实际使用需进行替换
+1、示例中的 `"{{MatchedFiles[0].path}}"` 为 cmds 配置中的模板变量，实际使用需进行替换
 
 2、说明数组的第一项为插件名称，第二项为插件关键字(对应插件智能匹配的关键字)，需确认跳转的插件支持【智能匹配】才能携带数据跳转
 
@@ -186,7 +186,7 @@ utools.redirect(['万能文件浏览器', '本地文件预览'], {
 
 > 当前是否深色模式
 
-注意事项：还需额外添加事件监听器，确保插件运行过程中自动切换主题；也可选择媒介查询来查看当前系统所处模式
+注意事项：还需额外添加事件监听器，确保插件运行过程中自动切换主题；也可选择媒体查询来查看当前系统所处模式
 
 ```javascript
 const isDarkMode = utools.isDarkColors() ? 'dark-mode' : 'light-mode'
@@ -199,19 +199,19 @@ console.log('当前模式为：' + `${isDarkMode}`)
 
 常规的 Web 开发插件模式，结合 HTML + CSS + JavaScript 构建插件，需自己规划页面结构、设置页面样式，完善插件逻辑
 
-开发之前快速了解一下可能需要使用到的技术，通用场景可采用落雨大佬制作的模块，对常用 uTools 操作进行封装，简化准入门槛，快速导入即可使用
+开发之前快速了解一下可能需要使用到的技术，通用场景可采用落雨大佬制作的模块，对常用 uTools 操作进行封装，降低准入门槛，快速导入即可使用
 
 ### uTools 模块
 
 #### uTools 数据库
 
-[落雨大佬制作-uTools 数据库：https://www.codecopy.cn/post/2hwiyx](https://www.codecopy.cn/post/2hwiyx)
+[落雨大佬制作-uTools 数据库：https://codecopy.cn/post/2hwiyx](https://codecopy.cn/post/2hwiyx)
 
 <br/>
 
 #### uTools 页面搜索
 
-[落雨大佬制作-uTools页面搜索hook：https://codecopy.cn/post/ef6zqt](https://codecopy.cn/post/ef6zqt)
+[落雨大佬制作-uTools 页面搜索 hook：https://codecopy.cn/post/ef6zqt](https://codecopy.cn/post/ef6zqt)
 
 基于大佬的 uTools 页面搜索改编的 JS 版本（见下方 `PageSearch` 类）
 
@@ -315,7 +315,7 @@ pageSearch.init();
 
 简单理解就是，高内聚：即相同的功能封装成一个模块；低耦合：各模块间依赖关系少；
 
-现代前端开发时不太会遇到此类问题，因为前端开发均已使用了 Vue、React 等模块化、组件化的开发方式（需要注意的是即使使用这些框架，如果设计不当，也可能出现高耦合的问题），有助于提高内聚性和降低耦合性。如果使用原生JS开发则很容易遇到这种问题。因为这些通常需要自行进行模块化处理。
+现代前端开发中不太会遇到此类问题，因为前端开发均已使用了 Vue、React 等模块化、组件化的开发方式（需要注意的是即使使用这些框架，如果设计不当，也可能出现高耦合的问题），有助于提高内聚性和降低耦合性。如果使用原生 JS 开发则很容易遇到这种问题。因为这些通常需要自行进行模块化处理。
 
 场景举例：当写了一大堆代码实现功能后，如果此时新增需求，修改代码会很麻烦，则需要解耦，将原先的代码抽离成一个个模块，方便后期维护及新增需求。
 
@@ -329,7 +329,7 @@ pageSearch.init();
 
 #### 精简代码
 
-推荐：单文件代码控制在200行左右
+推荐：单文件代码控制在 200 行左右
 
 #### 文档注释：
 
@@ -371,7 +371,7 @@ function toggleTooltip(show) {
 
 #### 提取重复代码
 
-> 采用一种更加通用和可扩展的方式对代码进行重构；效果类似`python`，封装通用代码为列表
+> 采用一种更加通用和可扩展的方式对代码进行重构，封装通用代码为列表
 
 ```javascript
 // 优化前：
@@ -407,19 +407,6 @@ document.getElementById('inputHex').addEventListener('input', function() {
 
 ### 传统前端开发
 
-开发目录：
-
-```text
-├─js
-│  └─index.js
-├─css
-│  └─style.css
-├─html
-│  └─index.html
-└─src
-   └─logo.png 
-```
-
 纯 HTML + CSS + JavaScript 开发，无框架、无构建工具，适合简单工具类插件。以**本地书签管理器**为例：
 
 **开发目录：**
@@ -427,6 +414,7 @@ document.getElementById('inputHex').addEventListener('input', function() {
 ├── plugin.json
 ├── preload.js
 ├── index.html
+├── index.js
 ├── style.css
 └── logo.png
 ```
@@ -434,6 +422,7 @@ document.getElementById('inputHex').addEventListener('input', function() {
 **plugin.json**
 ```json
 {
+  "main": "index.html",
   "logo": "logo.png",
   "preload": "preload.js",
   "features": [
@@ -488,7 +477,6 @@ window.bookmarkAPI = {
     </form>
     <ul id="list"></ul>
   </div>
-  <script src="preload.js"></script>
   <script src="index.js"></script>
 </body>
 </html>
@@ -499,12 +487,16 @@ window.bookmarkAPI = {
 const form = document.getElementById('addForm')
 const list = document.getElementById('list')
 
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
+}
+
 function render() {
   const data = window.bookmarkAPI.list()
   list.innerHTML = data.map(item => `
     <li>
-      <a href="${item.url}" target="_blank">${item.title}</a>
-      ${item.desc ? `<p>${item.desc}</p>` : ''}
+      <a href="${escapeHtml(item.url)}" target="_blank">${escapeHtml(item.title)}</a>
+      ${item.desc ? `<p>${escapeHtml(item.desc)}</p>` : ''}
       <button class="del" data-id="${item._id}">删除</button>
     </li>
   `).join('')
@@ -638,14 +630,11 @@ module.exports = {
 └── package.json
 ```
 
-**vite.config.ts**
+**vite.config.ts**（精简版，完整版——含 `plugin.json` 合法性校验插件、构建 `target` 等——见 SKILL.md「vite.config.ts 关键配置」章节）
 ```typescript
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import fs from 'node:fs'
-import path from 'node:path'
 
-// 可选：构建前检查 plugin.json 是否合法
 export default defineConfig({
   plugins: [vue()],
   base: './',
@@ -665,7 +654,7 @@ export default defineConfig({
 > 注意：`plugin.json` 的 `main` 字段写 `"index.html"` 即可，无需前缀路径。静态文件（`plugin.json` / `preload.js` / `logo.png`）放 `public/` 下，Vite 构建时自动复制到 `dist/`。
 
 **构建与打包流程：**
-1. 开发：`npm run dev`，`plugin.json` 中 `development.main` 指向 `http://localhost:5173`
+1. 开发：`npm run dev`，`plugin.json` 中 `development.main` 指向 `http://127.0.0.1:5173/index.html`
 2. 构建：`npm run build`，产物输出到 `dist/`，`public/` 中的静态文件自动复制
 3. 确保 `dist/` 内有 `package.json`（`{ "type": "commonjs" }`）
 4. 在开发者工具中选择 `dist/plugin.json` 打包
@@ -675,7 +664,7 @@ export default defineConfig({
 | 类型 | 处理方式 |
 |------|---------|
 | 前端依赖（vue、element-plus） | 正常 npm 安装，构建工具自动打包 |
-| Node.js 依赖（fs-extra、sqlite3、bcrypt） | 模块放在 `preload.js` 同级，不编译不打包，源码清晰可读 |
+| Node.js 依赖（fs-extra、bcrypt.js 等纯 JS 模块） | 模块放在 `preload.js` 同级，不编译不打包，源码清晰可读 |
 
 #### 社区模板：vite-utools-template
 
@@ -683,7 +672,7 @@ export default defineConfig({
 
 该模板**与本路线默认方案的详细对比、初始化流程和验证清单，统一以 SKILL.md 的"项目初始化"章节为准**。本节仅补充差异概览：
 
-| | 默认方案（上方） | uTools Vite 模板（落雨大佬开发） |
+| | 默认方案（上方） | uTools Vite 模板（gitee: q2316367743） |
 |---|---|---|
 | 构建输出 | dist/ | src-utools/dist/ |
 | UI 库 | 无（自选） | TDesign Vue Next |
@@ -719,7 +708,7 @@ export default defineConfig({
 2. 索引数据存入 `utools.db`（文档内容属于用户数据，适合同步）
 3. 进入插件时展示搜索结果列表
 
-**关键注意**：索引构建只需在首次启动或手动触发时执行，不要每次进入插件都重建。
+**关键注意**：索引构建只需在首次启动或手动触发时执行，不要每次进入插件都重建。全量索引批量写入 `utools.db` 时需控制两次写操作间隔 ≥ 300ms（见 SKILL.md 关键约束）：可分批写入（每批若干条，批间延时），或评估数据量级后改用本地文件存储。
 
 ---
 
@@ -729,14 +718,14 @@ export default defineConfig({
 
 语义化版本不是前端的概念，属于软件管理领域里边的一个概念，指使用字符串来描述一个软件的版本，官方的说法是一种软件版本号的标准化方案，旨在使软件版本号的管理更加透明和可预测。
 
-默认从1.0.0开始（代表正式版本），如遇见从0.1.0开始的版本代表该插件/库为测试版本，还未正式发布
+默认从 1.0.0 开始（代表正式版本），如遇见从 0.1.0 开始的版本代表该插件/库为测试版本，还未正式发布
 
-格式：`x.y.z`，（整体上只能增不能减，即使后续某一项版本的功能和前面某次版本的功能一致，也必须增加版本号，不能回退（强制性），中间可跳过但不建议）
+格式：`x.y.z`（版本号只能递增，一经发布不可回退；可跳过中间版本但不建议）
 
-x：主版本；代表截断式更新，如 vue2 更新到 vue3 ，再写法上及使用层面都会有巨大的变化，增加很多新功能的同时也不再支持以前老旧的特性。
+x：主版本；代表破坏性更新（不兼容更新），如 vue2 更新到 vue3，在写法上及使用层面都会有巨大的变化，增加很多新功能的同时也不再支持以前老旧的特性。
 
-y：次版本；代表再之前的基础上增加了部分功能。
+y：次版本；代表在上一版本的基础上增加了部分功能。
 
-z：修订版本；代表再前一次的基础上修复了 bug 等，`即功能上无变化，修正了一些错误、隐患等`
+z：修订版本；代表在前一版本的基础上修复了 bug 等，`即功能上无变化，修正了一些错误、隐患等`
 
-在 uTools 中插件版本已经做了上述的基础限制（如回退，撤回版本发布会跳过当前版本等）仅需了解即可
+在 uTools 中插件版本发布已做了上述限制（如版本回退时，撤回版本发布会跳过当前版本等），仅需了解即可

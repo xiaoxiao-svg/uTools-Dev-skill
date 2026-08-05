@@ -46,7 +46,6 @@ keywords: [utools, ubrowser, preload.js, plugin.json, utools插件, uTools开发
 - `utools.*` 全系列 API（事件、窗口、数据存储、AI、ubrowser 等）
 - `plugin.json` 配置（features/cmds、tools、development 字段）
 - `preload.js` 编写与 CommonJS 规范
-- 三种模板模式（无 UI / 列表 / 文档）
 - 构建配置（Vite + Vue、React + webpack）
 - 数据存储（db / dbStorage / dbCryptoStorage）
 - 发布打包与市场审核流程
@@ -79,7 +78,7 @@ keywords: [utools, ubrowser, preload.js, plugin.json, utools插件, uTools开发
 
 | 用户问题涉及 | 激活角色 |
 |-------------|---------|
-| `plugin.json`、`preload.js`、`utools.*` API、`ubrowser`、三种模板模式、构建配置、打包发布 | Agent 1：uTools 插件开发专家 |
+| `plugin.json`、`preload.js`、`utools.*` API、`ubrowser`、构建配置、打包发布 | Agent 1：uTools 插件开发专家 |
 | `BrowserWindow`、IPC、Node.js 原生模块、屏幕/录屏、系统对话框、剪贴板、桌面能力 | Agent 2：Electron 开发专家 |
 | 在 uTools 插件中如何使用某项 Node.js / Electron 能力 | 双角色协同：Electron 专家提供能力边界和可用 API，uTools 专家给出在插件结构中接入的具体方式 |
 
@@ -121,7 +120,7 @@ API 参考：
 常见问题：
 `references/uTools-FAQ.md`
 
-遇到 `utools.*` / `ubrowser.*` / `plugin.json` / `preload.js` 相关问题时，**必须先查阅该文档对应章节**再回答（API 使用、uTools开发等官方规范问题查看 API 参考，实际可能遇到的问题查看开发记录参考）。
+遇到 `utools.*` / `ubrowser.*` / `plugin.json` / `preload.js` 相关问题时，**必须先查阅该文档对应章节**再回答（API 使用、uTools 开发等官方规范问题查看 API 参考，实际可能遇到的问题查看开发记录参考）。
 
 ## 核心 API 速览
 
@@ -140,7 +139,7 @@ API 参考：
 - `plugin.json` 是唯一入口配置文件，`features.cmds` 定义搜索指令
 - 正则表达式中的反斜杠 `\` 需写成 `\\`
 - 发布前检查移除 `.git/`、`.vscode/`、`*.js.map`、`*.css.map`
-- **两次 db 操作之间的时间间隔不能小于 300ms**，否则会触发 uTools 数据存储无限循环，导致 uTools 卡死无响应（包括 `utools.db.*`、`utools.dbStorage.*`、`utools.dbCryptoStorage.*` 的所有写操作）
+- **两次 db 操作之间的时间间隔不能小于 300ms**，否则会触发 uTools 数据存储无限循环，导致 uTools 卡死无响应（包括 `utools.db.*`、`utools.dbStorage.*`、`utools.dbCryptoStorage.*` 的所有写操作；约束出处与高频写入场景见 `references/uTools-Plugin-Dev-Record.md` 场景 1）
 
 ## Vite + Vue 项目结构（现代前端开发）
 
@@ -153,7 +152,7 @@ project/
 ├── public/                     # 静态文件，构建时自动复制到 dist/
 │   ├── plugin.json
 │   ├── preload.js
-│   └── logo.png
+│   └── logo.png                # 256×256
 ├── dist/                       # 构建产物（可拖入开发者工具打包）
 ├── src/                        # Vue 源码
 │   ├── components/
@@ -165,7 +164,7 @@ project/
 └── package.json
 ```
 
-根目录的 `plugin.json` 中 `main` 直接写 `"index.html"`，不需要特殊处理。
+`public/plugin.json` 中 `main` 直接写 `"index.html"`，不需要特殊处理。
 
 ### vite.config.ts 关键配置（推荐）
 
@@ -197,7 +196,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-    target: 'es2022',              // 匹配 Chromium 91 的 JS 支持范围
+    target: 'es2021',              // 匹配 Chromium 91 的完整 JS 支持范围（ES2022 仅部分支持）
   },
   server: {
     host: '127.0.0.1',
@@ -211,13 +210,13 @@ export default defineConfig({
 - `base: './'` — 必须，适配 uTools 的 `file://` 协议
 - `publicDir: 'public'` — 利用 Vite 内置功能自动复制静态文件，无需额外插件
 - `validatePluginJson` 插件 — 可选，构建前检查 `plugin.json` 是否合法（防 BOM、防格式错误）
-- `target: 'es2022'` — 明确构建目标，匹配 Chromium 91 支持范围
+- `target: 'es2021'` — 明确构建目标，Chromium 91 完整支持 ES2021，ES2022 仅部分支持
 - `strictPort: true` — 端口被占用时报错而不是自动换端口，避免混淆
 - `emptyOutDir: true` — 每次构建前清空 dist/，防止残留旧文件
 
 ### 开发流程
 1. `pnpm dev` 启动开发服务器
-2. `plugin.json` 增加 `development.main` 指向 `http://localhost:5173`
+2. `plugin.json` 增加 `development.main` 指向 `http://127.0.0.1:5173/index.html`
 3. uTools 开发者工具 → 接入开发
 
 > **调试**：进入插件后按 `Ctrl+Shift+I` 打开开发者工具；在开发者工具中开启"退出到后台立即结束运行"，确保每次重新进入都加载最新代码。
@@ -225,15 +224,15 @@ export default defineConfig({
 ### 构建与发布流程
 1. `pnpm build` → 产物输出到 `dist/`
 2. `public/` 中的 `plugin.json` / `preload.js` / `logo.png` 自动复制到 `dist/`
-3. 确保 `dist/` 内有 `package.json`（内容 `{ "type": "commonjs" }`），否则 preload.js 的 `require` 会报错
-4. preload 的 Node.js 依赖安装到 `dist/` 同级（不编译不打包，源码清晰可读）
+3. 确保 `dist/` 内有 `package.json`（内容 `{ "type": "commonjs" }`），否则 preload.js 的 `require` 会报错；将该文件放入 `public/` 即可随构建自动复制到 `dist/`
+4. preload 的 Node.js 依赖安装到 `dist/` 内的 `node_modules`（与 preload.js 同级，不编译不打包，源码清晰可读）
 5. 在开发者工具中选择 `dist/plugin.json` 打包
 
 ### preload.js 依赖处理
 | 类型 | 处理方式 |
 |------|---------|
 | 前端依赖（vue、element-plus） | 正常 npm 安装，Vite 自动打包 |
-| Node.js 依赖（fs-extra、sharp等原生模块） | 源码放在 preload.js 同级 node_modules，不编译不打包 |
+| Node.js 依赖（fs-extra 等纯 JS 模块） | 源码放在 preload.js 同级 node_modules，不编译不打包 |
 
 ### 附录：另一种方案（静态文件放项目根目录）
 
@@ -246,7 +245,7 @@ project/
 ├── index.html
 ├── plugin.json                # 根目录 → 构建时复制到 dist/
 ├── preload.js                 # 根目录 → 构建时复制到 dist/
-├── icon.png                   # 根目录 → 构建时复制到 dist/
+├── logo.png                   # 根目录 → 构建时复制到 dist/
 ├── vite.config.ts
 └── package.json
 ```
@@ -271,7 +270,7 @@ export default defineConfig({
       targets: [
         { src: 'plugin.json', dest: '.' },
         { src: 'preload.js', dest: '.' },
-        { src: 'icon.png', dest: '.' }
+        { src: 'logo.png', dest: '.' }
       ]
     }),
     {
@@ -298,9 +297,9 @@ export default defineConfig({
 
 ### 模板选择
 
-| | 默认 Vite 模板 | uTools Vite 模板（落雨大佬开发） |
+| | 默认 Vite 模板 | uTools Vite 模板（gitee: q2316367743） |
 |---|---|---|
-| 来源 | 本 skill 内置 | gitee: q2316367743/vite-utools-template |
+| 来源 | 按本文件章节结构生成 | gitee: q2316367743/vite-utools-template |
 | 依赖量 | 极少（仅 vue + vite） | 较重（+tdesign+pinia+unocss+...） |
 | UI 库 | 无（自选） | TDesign Vue Next |
 | 路由/状态 | 无（自选） | Vue Router + Pinia |
@@ -329,7 +328,7 @@ export default defineConfig({
 9. 打包：在 uTools 开发者工具中选择 `dist/plugin.json`
 
 **验证清单**（完成后逐项确认）：
-- [ ] `pnpm dev` 能正常启动，浏览器可打开 `http://localhost:5173`
+- [ ] `pnpm dev` 能正常启动，浏览器可打开 `http://127.0.0.1:5173`
 - [ ] `pnpm build` 成功，`dist/` 内存在 `plugin.json` / `preload.js` / `index.html`
 - [ ] 在 uTools 开发者工具中能正常加载 `dist/plugin.json`
 
@@ -360,7 +359,7 @@ export default defineConfig({
 > - 该模板同时支持 uTools 和 ZTools 双平台
 
 **验证清单**（完成后逐项确认）：
-- [ ] `pnpm dev` 能正常启动，浏览器可打开 `http://localhost:5173`
+- [ ] `pnpm dev` 能正常启动，浏览器可打开 `http://127.0.0.1:5173`
 - [ ] `pnpm build` 成功，`src-utools/dist/` 内存在 `plugin.json` / `preload.js` / `index.html`
 - [ ] 在 uTools 开发者工具中能正常加载 `src-utools/dist/plugin.json`
 
@@ -416,7 +415,7 @@ window.parent.preload.yourMethod()
   }
 }
 ```
-构建发布前需移除或注释此字段。
+构建发布前需删除此字段。
 
 ### tools 字段（AI Agent 工具）
 

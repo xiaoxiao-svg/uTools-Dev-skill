@@ -1,6 +1,6 @@
 # uTools 服务端 API
 
-通过 uTools 的服务端 API，可以将你的应用和 uTools 用户关联，实现帐号互通、接收支付通知、查询用户支付记录等，为保护密钥安全，请仅在服务端调用接口。
+通过 uTools 的服务端 API，可以将你的应用和 uTools 用户关联，实现账号互通、接收支付通知、查询用户支付记录等，为保护密钥安全，请仅在服务端调用接口。
 
 ---
 
@@ -12,7 +12,7 @@
 |--------|------|
 | 200 | 成功 |
 | 400 | 客户端错误 |
-| 401 | 位置用户（sign 错误） |
+| 401 | 未登录用户（sign 错误） |
 | 403 | 无权限访问（timestamp 过期） |
 | 404 | 未找到对应插件 |
 | 422 | 请求参数校验失败 |
@@ -22,7 +22,7 @@
 
 ## 获取用户基础信息
 
-此接口用于获取 uTools 用户的基础信息、验证用户真实性，与第三方系统进行帐号打通，实现系统间免登录跳转等。
+此接口用于获取 uTools 用户的基础信息、验证用户真实性，与第三方系统进行账号打通，实现系统间免登录跳转等。
 
 ### 接口定义
 
@@ -37,7 +37,7 @@ Accept: application/json
 |--------|------|------|------|
 | plugin_id | string | 是 | 插件 ID |
 | access_token | string | 是 | 用户登录凭证 |
-| timestamp | string | 是 | 请求时间戳(秒)，误差需小于 10 分钟 |
+| timestamp | string | 是 | 请求时间戳（秒），误差需小于 10 分钟 |
 | sign | string | 是 | 签名 |
 
 ### 响应数据
@@ -83,7 +83,7 @@ $params = [
 ];
 ksort($params);
 $str = http_build_query($params);
-$secret = "your secret 32位";
+$secret = "your secret 32位"; // 在 uTools 开发者工具中获取
 $sign = hash_hmac("sha256", $str, $secret);
 ```
 
@@ -101,8 +101,8 @@ const sortedParams = keys.reduce((acc, key) => {
   acc[key] = params[key];
   return acc;
 }, {});
-const str = new URLSearchParams(sortedParams).toString();
-const secret = "your secret 32位";
+const str = new URLSearchParams(sortedParams).toString(); // 与 PHP http_build_query 编码规则略有差异（空格 %20 vs +），示例参数为 ASCII 安全字符时无影响
+const secret = "your secret 32位"; // 在 uTools 开发者工具中获取
 const sign = crypto.createHmac("sha256", secret).update(str).digest("hex");
 ```
 
@@ -111,14 +111,7 @@ const sign = crypto.createHmac("sha256", secret).update(str).digest("hex");
 **curl**
 
 ```bash
-curl --location --request GET 'https://open.u-tools.cn/baseinfo' \
---header 'Content-Type: application/json' \
---data-raw '{
-  "plugin_id": "zueadppw",
-  "access_token": "user access_token 32位",
-  "timestamp": "1624329435",
-  "sign": "xxx"
-}'
+curl --location 'https://open.u-tools.cn/baseinfo?plugin_id=zueadppw&access_token=user_access_token_32&timestamp=1624329435&sign=xxx'
 ```
 
 **Node.js**
@@ -204,8 +197,8 @@ Accept: application/json
 |--------|------|------|------|
 | plugin_id | string | 是 | 插件 ID |
 | total_fee | int | 是 | 商品价格(分) |
-| title | string | 是 | 商品名称(50字符内) |
-| pay_limit | int | 否 | 可购买次数(默认0为无限制) |
+| title | string | 是 | 商品名称(50 字符内) |
+| pay_limit | int | 否 | 可购买次数(默认 0 为无限制) |
 | access_token | string | 是 | 用户登录凭证 |
 | timestamp | int | 是 | 时间戳（秒），误差需小于 10 分钟 |
 | sign | string | 是 | 签名 |
@@ -217,6 +210,8 @@ Accept: application/json
   "message": "ZyxrbSpWBH360pSWG0ueYI3rKSWXMcic"
 }
 ```
+
+`message` 即为新创建的商品 ID（`goods_id`），后续支付请求需使用该值。
 
 ---
 

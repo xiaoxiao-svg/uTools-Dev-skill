@@ -16,7 +16,7 @@ hey，开发者，终于和你见面了。
 
 #### 插件应用是什么
 
-Node.js 本地原生能力 + Web 前端网页。(本地软件能做到的，理论上它也能做到)
+Node.js 本地原生能力 + Web 前端网页。（本地软件能做到的，理论上它也能做到）
 
 #### 环境要求
 
@@ -41,14 +41,14 @@ Node.js 本地原生能力 + Web 前端网页。(本地软件能做到的，理�
 
 #### 打开 uTools 开发者工具
 
-开发者工具主界面
+开发者工具主界面（截图略，以开发者工具实际界面为准）
 
 #### 新建项目
 
 点击开发者工具左下侧 `新建项目` 按钮，即可弹出新建项目相关的配置界面。
 
 根据表单的字段要求，分别填写对应内容。
-勾选 "同意 uTools 开发者协议" ，点击右下角的确定，完成创建。
+勾选"同意 uTools 开发者协议"，点击右下角的确定，完成创建。
 
 - **插件应用名称**: 为了保证插件能够被 [Web 端的插件应用市场](https://www.u-tools.cn/plugins/) 正确收录，请尽量：**不使用特殊的符号，比如操作系统不支持的文件名符号以及 emoji 等**
 - **插件应用描述**：可以帮助其他用户快速的了解应用包含的功能，尽量简洁且清晰
@@ -56,18 +56,14 @@ Node.js 本地原生能力 + Web 前端网页。(本地软件能做到的，理�
 - **开发者名称**：插件应用市场会显示该应用开发者名称
 - **插件应用所属团队**：创建属于团队的私有插件应用
 
-> TIP
->
-> 如需创建团队，请前往 [团队版](https://www.u-tools.cn/team/)
+> **TIP**：如需创建团队，请前往 [团队版](https://www.u-tools.cn/team/)
 
 #### 创建工程文件夹
 
-- 通过 `uTools 开发者工具` "新建React+Vite工程" / "新建Vue+Vite工程" 按钮，根据步骤自动创建。
+- 通过 `uTools 开发者工具` "新建 React+Vite 工程" / "新建 Vue+Vite 工程" 按钮，根据步骤自动创建。
 - 或手动创建工程文件夹
 
-> TIP
->
-> 文件夹的名字可以是任意的，但是我们尽量保证跟插件应用有一定关联性以及尽量使用英文。 比如你的第一个插件应用名字可能是"第一个插件"，文件夹名字可以是"my-first-plugin"。
+> **TIP**：文件夹的名字可以是任意的，但是我们尽量保证跟插件应用有一定关联性以及尽量使用英文。比如你的第一个插件应用名字可能是"第一个插件"，文件夹名字可以是"my-first-plugin"。
 
 #### 工程文件夹下的文件
 
@@ -186,7 +182,7 @@ npm run serve
 
 > 注意：离线插件应用安装更多用于方便测试或者自己内部分享或使用，而不是用于发布。
 >
-> 若想要更多人使用你的插件应用，请参考 [发布插件应用](./publish-plugin.html)。
+> 若想要更多人使用你的插件应用，请参考 [uTools 开发者文档](https://u.tools/docs/developer/api.html) 中的发布章节。
 
 通过 uTools 开发者工具插件，点击 **打包** 按钮，填写版本信息后，点击 **确认** 按钮后，在弹出的文件保存窗口选择保存路径即可完成打包。
 
@@ -202,9 +198,7 @@ npm run serve
 
 当你的插件应用完成开发，并且完成测试没有问题之后，就可以发布到插件应用市场了。
 
-> 小提示
->
-> 发布到市场能让你的插件应用被更多用户使用，也可以强化 uTools 的生态。
+> **小提示**：发布到市场能让你的插件应用被更多用户使用，也可以强化 uTools 的生态。
 
 #### 发布前的准备
 
@@ -214,9 +208,7 @@ npm run serve
 - 检查代码是否符合规范
 - 插件应用介绍中提供用户手册
 
-> 提供用户手册
->
-> 插件应用发布时，请尽量提供足够详细的用户使用手册，这将会降低你的插件应用使用门槛。
+> **提供用户手册**：插件应用发布时，请尽量提供足够详细的用户使用手册，这将会降低你的插件应用使用门槛。
 >
 > 插件应用的功能尽量简洁，易上手会让你的插件应用变得更受欢迎。
 >
@@ -296,7 +288,7 @@ uTools 仅识别 html + css + javascript，使用 vite、webpack 等工具时，
 ##### `main`
 
 > 类型：`string`
-> 必填：是
+> 必填：是（AI Agent 无 UI 模式除外，见下文）
 
 必须指定为相对于 `plugin.json` 的 **相对路径**，且文件类型必须为 `.html`
 
@@ -340,7 +332,7 @@ uTools 仅识别 html + css + javascript，使用 vite、webpack 等工具时，
 ##### `features`
 
 > 类型：`Array<object>`
-> 必填：是
+> 必填：是（AI Agent 无 UI 模式除外，见下文）
 > 最小长度：`1`
 
 features 定义插件应用的指令集合，一个插件应用可定义多个功能，一个功能可配置多条指令。
@@ -762,8 +754,8 @@ uTools 基于 Electron 构建，通过 preload 机制，在渲染线程中，释
 ```js
 const fs = require("fs");
 window.customApis = {
-  readFile: (path) => {
-    return fs.readFileSync(path, "utf8");
+  readFile: async (path) => {
+    return fs.promises.readFile(path, "utf8");
   },
 };
 ```
@@ -796,7 +788,7 @@ export default function App() {
 
 #### 使用 Node.js
 
-`preload` js 文件遵循 `CommonJS` 规范，通过 `require` 引入 Node.js (16.x 版本) 模块。
+`preload` js 文件遵循 `CommonJS` 规范，通过 `require` 引入 Node.js (14.x 版本) 模块。
 
 ##### 引入 Node.js 原生模块
 
@@ -980,7 +972,7 @@ interface PluginEnterAction {
   code: string;
   type: "text" | "img" | "file" | "regex" | "over" | "window";
   payload: string | MatchFile[] | MatchWindow;
-  from: "main" | "panel" | "hotkey" | "reirect";
+  from: "main" | "panel" | "hotkey" | "redirect";
   option?: {
     mainPush: boolean;
   };
@@ -993,7 +985,7 @@ interface PluginEnterAction {
 - `type`: plugin.json 配置的 feature.cmd.type
 - `payload`: feature.cmd.type 对应匹配的数据
 - `option`: feature.mainPush 设置为 true，且当用户选择 onMainPush 返回的选项进入时
-- `from`: 根据不同触发来源提供：`main` 主面板, `panel` 超级面板, `hotkey` 快捷键, `reirect` 重定向
+- `from`: 根据不同触发来源提供：`main` 主面板, `panel` 超级面板, `hotkey` 快捷键, `redirect` 重定向
 
 `MatchFile` 类型定义
 
@@ -1061,7 +1053,7 @@ utools.onPluginOut((isKill) => {
 
 推送内容到搜索框，并设置从推送的内容选项中打开插件应用的回调
 
-> 注意：向搜索框推送消息(需要设置 feature.mainPush 设置为 true)
+> 注意：向搜索框推送消息前，需要将 feature.mainPush 设置为 true
 
 **类型定义**
 
@@ -1086,8 +1078,8 @@ interface MainPushAction {
 
 ```ts
 interface MainPushResult {
-  icon: string;
-  title: string;
+  icon?: string;
+  title?: string;
   text: string;
 }
 ```
@@ -1439,7 +1431,7 @@ utools.startDrag(["/path/to/1.txt", "/path/to/2.txt"]);
 **类型定义**
 
 ```ts
-function createBrowserWindow(url: string, options: BrowserWindowConstructorOptions, callback?: Function): BrowserWindow;
+function createBrowserWindow(url: string, options?: BrowserWindowConstructorOptions, callback?: Function): BrowserWindow;
 ```
 
 - `url` 相对路径的 html 文件
@@ -2198,7 +2190,7 @@ function dipToScreenRect(rect: { x: number; y: number; width: number; height: nu
 **类型定义**
 
 ```ts
-function desktopCaptureSources(options: { types: string[]; thumbnailSize?: { width: number; height: number }; fetchWindowIcons: boolean }): Promise<DesktopCaptureSource[]>;
+function desktopCaptureSources(options: { types: string[]; thumbnailSize?: { width: number; height: number }; fetchWindowIcons?: boolean }): Promise<DesktopCaptureSource[]>;
 ```
 
 **示例代码 - webm 录屏**
@@ -2327,7 +2319,7 @@ uTools 提供了本地数据库的 API，通过它可以实现一些简单的数
 
 > ⚠️ **严重警告：两次 db 写操作间隔必须 ≥ 300ms**
 >
-> 连续两次 db 写操作之间的时间间隔**不能小于 300ms**。如果小于该阈值，会触发 uTools 底层数据存储的无限同步循环，导致 uTools 主进程卡死、界面无响应。
+> 连续两次 db 写操作之间的时间间隔**不能小于 300ms**。如果小于该阈值，会触发 uTools 底层数据存储的无限同步循环，导致 uTools 主进程卡死、界面无响应。（约束出处：`references/uTools-Plugin-Dev-Record.md` 场景 1）
 >
 > **影响范围**（写操作）：
 > - `utools.db.*`：`put`、`remove`、`bulkDocs`、`postAttachment`（含 `utools.db.promises.*` 异步版本）
@@ -2342,7 +2334,7 @@ uTools 提供了本地数据库的 API，通过它可以实现一些简单的数
 >
 > 反复创建、删除、修改文档会导致同步过程中产生大量变更记录，增加冲突检测、版本确认和数据传输次数，会严重影响用户的同步速度和使用体验。
 >
-> 以下类型的数据请勿写入同步 DB，否则将下架插件：
+> 以下类型的数据请勿写入同步 DB，否则可能导致插件被下架（依据 uTools 官方同步数据库使用规范，具体以官方审核为准）：
 >
 > 1. 临时性数据：缓存数据、运行状态、窗口状态、临时配置、中间计算结果等；
 > 2. 高频变化数据：日志、调试信息、访问记录、统计计数、实时状态等；
@@ -2461,7 +2453,7 @@ function bulkDocs(docs: DbDoc[]): Promise<DbResult[]>;
 
 ##### `utools.db.allDocs([idStartsWith])` / `utools.db.promises.allDocs([idStartsWith])`
 
-筛选获取插件应用文档数组
+筛选并获取插件应用文档数组
 
 **类型定义**
 
@@ -2629,8 +2621,8 @@ interface Feature {
 const features = utools.getFeatures();
 console.log(features);
 // 获取特定 code
-const features = utools.getFeatures(["code-1", "code-2"]);
-console.log(features);
+const specific = utools.getFeatures(["code-1", "code-2"]);
+console.log(specific);
 ```
 
 #### `utools.setFeature(feature)`
@@ -2660,7 +2652,7 @@ utools.setFeature({
 **类型定义**
 
 ```ts
-function removeFeature(code: string): Boolean;
+function removeFeature(code: string): boolean;
 ```
 
 **示例代码**
@@ -2715,7 +2707,7 @@ function simulateKeyboardTap(key: string, ...modifiers: string[]): void;
 ```js
 // 模拟键盘敲击 Enter
 utools.simulateKeyboardTap("enter");
-// windows linux 模拟粘贴
+// Windows/Linux 模拟粘贴
 utools.simulateKeyboardTap("v", "ctrl");
 // macOS 模拟粘贴
 utools.simulateKeyboardTap("v", "command");
@@ -2777,7 +2769,7 @@ function simulateMouseRightClick(x: number, y: number): void;
 function isPurchasedUser(): boolean | string;
 ```
 
-- 返回 `false` 非付费用户，返回 `true` 永久授权用户(付费买断)，返回 "yyyy-mm-dd hh:mm:ss" 日期字符串表示授权用户到期时间
+- 返回 `false` 表示非付费用户，返回 `true` 表示永久授权用户（付费买断），返回 `"yyyy-mm-dd hh:mm:ss"` 日期字符串表示授权到期时间
 
 **示例代码**
 
@@ -3358,7 +3350,7 @@ function clearUBrowserCache(): boolean;
 
 ---
 
-### 3.13 MCP 工具 (为 AI Agent 提供能力)
+### 3.13 工具注册 (为 AI Agent 提供能力)
 
 #### `utools.registerTool(name, handler)`
 
@@ -3435,9 +3427,9 @@ utools.registerTool("video_convert", async ({ inputPath, format }, ctx) => {
 
 ```ts
 // 流式调用
-function ai(option: AiOption, streamCallback: (chunk: Message) => void): PromiseLike<void>;
+function ai(option: AiOption, streamCallback: (chunk: Message) => void): AiPromise<void>;
 // 非流式调用
-function ai(option: AiOption): PromiseLike<Message>;
+function ai(option: AiOption): AiPromise<Message>;
 ```
 
 `AiOption` 类型定义
@@ -3477,10 +3469,10 @@ interface Tool {
 }
 ```
 
-`PromiseLike` 类型定义
+`AiPromise` 类型定义
 
 ```ts
-interface PromiseLike<T> extends Promise<T> {
+interface AiPromise<T> extends Promise<T> {
   abort(): void;
 }
 ```
@@ -3608,7 +3600,7 @@ console.log(models);
 **类型定义**
 
 ```ts
-function sharp(input?: Buffer | Uint8Array | ArrayBuffer | string | Object | Array, options?: SharpOptions): Sharp;
+function sharp(input?: Buffer | Uint8Array | ArrayBuffer | string | object | any[], options?: SharpOptions): Sharp;
 ```
 
 **参数说明**
@@ -3617,10 +3609,10 @@ function sharp(input?: Buffer | Uint8Array | ArrayBuffer | string | Object | Arr
   - `Buffer`：Node.js Buffer，包含图片二进制数据
   - `Uint8Array` / `ArrayBuffer`：二进制图片数据
   - `string`：图片文件路径或 URL
-  - `Object`：
+  - `object`：
     - `text`：生成文本图片 `{ text: string; width?: number; height?: number; channels?: number; rgba?: boolean }`
     - `raw`：原始像素数据 `{ width: number; height: number; channels: number }`
-  - `Array`：输入源集合，可用于生成多帧动画
+  - `any[]`：输入源集合，可用于生成多帧动画
 - **options**（可选）：配置 Sharp 实例行为。常用字段：
   - `raw`：处理原始像素数据时使用
   - `create`：生成新图像
@@ -3746,14 +3738,14 @@ image
 **类型定义**
 
 ```ts
-function runFFmpeg(args: string[], onProgress?: (progress: RunProgress) => void): PromiseLike<void>;
-function runFFmpeg(args: string[], options: { onProgress?: (progress: RunProgress) => void; onLog?: (text: string) => void }): PromiseLike<void>;
+function runFFmpeg(args: string[], onProgress?: (progress: RunProgress) => void): FfmpegPromise;
+function runFFmpeg(args: string[], options: { onProgress?: (progress: RunProgress) => void; onLog?: (text: string) => void }): FfmpegPromise;
 ```
 
-`PromiseLike` 类型定义
+`FfmpegPromise` 类型定义
 
 ```ts
-interface PromiseLike extends Promise<void> {
+interface FfmpegPromise extends Promise<void> {
   kill(): void;
   quit(): void;
 }
@@ -3936,7 +3928,7 @@ npm install utools-api-types --save-dev
   "compilerOptions": {
     "types": ["utools-api-types"]
   },
-  "includes": [
+  "include": [
     // 如果使用ts或者框架，请添加需要类型提示的文件范围
     // src/**/*.ts
     // preload.js
@@ -3966,7 +3958,7 @@ npm install utools-api-types --save-dev
 }
 ```
 
-#### 跟随 `utools-api-type` 安装
+#### 跟随 `utools-api-types` 安装
 
 ```json
 {

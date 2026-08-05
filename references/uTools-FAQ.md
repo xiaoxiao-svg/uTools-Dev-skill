@@ -3,10 +3,10 @@
 ## 开发与调试
 
 ### 插件可以跨域请求吗
-uTools 的插件通常不受跨域的影响，可以访问任意跨域或者非跨域的资源。
+uTools 的插件通常不受跨域的影响，可以访问任意跨域或者非跨域的资源（开发阶段；发布后不允许直接请求网络资源，见下文）。
 
 ### 代码兼容性有什么要求
-uTools 的实现基于 Chromium 91 和 Node.js 14，只要不是特别新的语法（ES2021 及以下），都可以直接使用。不确定时标注"需验证"。
+uTools 的实现基于 Chromium 91 和 Node.js 14，ES2021 及以下的语法都可以直接使用；较新的语法建议在目标环境实测。
 
 ### 可以加载外部网络资源吗
 uTools 基于对用户安全性的考虑，**发布后**不允许直接请求网络资源（包括 css、js、图片等），也不允许动态加载和运行外部 js 文件。
@@ -17,7 +17,7 @@ uTools 基于对用户安全性的考虑，**发布后**不允许直接请求网
 **常见原因**：
 1. preload.js 报错 → 按 `Ctrl+Shift+I` 打开开发者工具查看控制台
 2. plugin.json 的 main 路径错误 → 确认相对路径与构建产物一致
-3. 使用了 ES2022+ 语法 → 降低构建 target 至 `es2021`
+3. 使用了 Chromium 91 不支持的较新语法（ES2022+ 中未落地部分）→ 降低构建 target 至 `es2021`
 
 ### preload.js 修改后不生效
 preload.js 不支持热更新。在开发者工具设置中开启 **"退出到后台立即结束运行"**，每次重新进入插件即可加载最新代码。
@@ -36,7 +36,7 @@ preload.js 运行在独立环境，无法直接断点调试。可用 `console.lo
 - `*.css.map`
 
 ### 插件支持 SPA 吗
-uTools 更支持插件是单一入口的形式启动，不推荐动态加载 HTML 或 JS 文件，因此插件页面使用 SPA 模式打包更加合理。
+uTools 更支持插件以单一入口的形式启动，不推荐动态加载 HTML 或 JS 文件，因此插件页面使用 SPA 模式打包更加合理。
 
 ## 数据存储
 
@@ -47,7 +47,7 @@ uTools 更支持插件是单一入口的形式启动，不推荐动态加载 HTM
 排查步骤：
 1. 用户是否开启数据同步（uTools 设置中）
 2. 是否登录同一账号
-3. 调用 `utools.db.replicateStateFromCloud()` 查看同步状态（据社区反馈：返回 0 表示同步完成，1 表示同步中，null 表示未开启；具体返回值可能随版本变化，建议实际测试验证）
+3. 调用 `utools.db.replicateStateFromCloud()` 查看同步状态（`null` 表示未开启数据同步，`0` 表示已完成同步，`1` 表示同步中）
 
 ### dbStorage 和 db 有什么区别
 - `utools.db`：文档型数据库，支持复杂查询、批量操作、附件存储
@@ -55,14 +55,14 @@ uTools 更支持插件是单一入口的形式启动，不推荐动态加载 HTM
 - `utools.dbCryptoStorage`：加密键值对存储，适合敏感数据
 
 ### 两次 db 操作有什么限制
-连续两次 db 写操作（put / remove / bulkDocs / postAttachment / dbStorage.setItem / dbCryptoStorage.setItem 等）间隔不能小于 300ms，否则会触发 uTools 数据存储无限循环，导致主进程卡死。读操作（get / allDocs / getItem 等）不受此限制。
+连续两次 db 写操作（put / remove / bulkDocs / postAttachment / dbStorage.setItem / dbStorage.removeItem / dbCryptoStorage.setItem / dbCryptoStorage.removeItem 等）间隔不能小于 300ms，否则会触发 uTools 数据存储无限循环，导致主进程卡死。读操作（get / allDocs / getItem 等）不受此限制。
 
-详见 SKILL.md 关键约束 和 `references/uTools-Dev-Doc.md` 数据存储章节。
+详见 `SKILL.md` 关键约束和 `references/uTools-Dev-Doc.md` 数据存储章节。
 
 ## 打包与发布
 
 ### 打包时提示"preload.js 不可读"
-preload.js 及其依赖的模块源码必须清晰可读，不能混淆/压缩/打包。检查：
+preload.js 及其依赖的模块源码必须清晰可读，不能混淆/压缩。检查：
 - preload.js 是否经过 webpack/rollup 打包
 - node_modules 中的依赖是否被压缩
 
@@ -76,10 +76,10 @@ preload.js 及其依赖的模块源码必须清晰可读，不能混淆/压缩/�
 ## 付费相关
 
 ### 申请付费功能的条件
-插件已经通过审核，上架到插件市场，并累计获得 1000 个有效下载。
+插件已经通过审核，上架到插件市场，并累计获得 1000 个有效下载（以官方最新政策为准）。
 
 ### 如何申请付费功能
-1. 企业通过「uTools 开发者工具」中提交企业开发者认证，并发送邮件到 service@u.tools 申请开通
+1. 企业在「uTools 开发者工具」中提交企业开发者认证，并发送邮件到 service@u.tools 申请开通
 2. 个人开发者将以下信息发邮件到 service@u.tools 申请开通
 
 **邮件需包含信息**：
@@ -92,10 +92,10 @@ preload.js 及其依赖的模块源码必须清晰可读，不能混淆/压缩/�
 - 结算银行卡信息（开户行，银行卡号）
 
 ### 服务费率是多少
-uTools 将收取收款金额的 30%（**当前推广期 15%**）作为平台服务费。
+uTools 将收取收款金额的 30%（**推广期 15%**，以官方最新公告为准，当前内容来源于官方文档）作为平台服务费。
 
 ### 结算规则
-1. 待结算的金额需至少到达 100 元
+1. 待结算的金额需至少达到 100 元
 2. 插件应用获取的收益，将在扣除服务费后，于每月 10 号统一支付上一月的收益到你的结算银行卡中
 
 ## 运行时错误速查

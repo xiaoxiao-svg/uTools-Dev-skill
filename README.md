@@ -82,7 +82,7 @@ uTools-Dev/
 - [uTools 开发者文档](https://u.tools/docs/developer/api.html)
 - [uTools 官方类型定义](https://github.com/uTools-Labs/utools-api-types)
 - [uTools 密码管理器（官方开源示例）](https://github.com/uTools-Labs/utools-upassword)
-- [vite-utools-template（落雨大佬开发的 Vite + Vue 模板）](https://gitee.com/q2316367743/vite-utools-template)
+- [vite-utools-template（gitee: q2316367743 的 Vite + Vue 模板）](https://gitee.com/q2316367743/vite-utools-template)
 - [Electron 中文网](https://electronjs.cn)（国内访问）
 - [MDN 中文镜像](https://developer.mozilla.org/zh-CN)（国内访问）
 
