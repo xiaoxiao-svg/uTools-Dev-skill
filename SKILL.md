@@ -141,11 +141,35 @@ API 参考：
 - 发布前检查移除 `.git/`、`.vscode/`、`*.js.map`、`*.css.map`
 - **两次 db 操作之间的时间间隔不能小于 300ms**，否则会触发 uTools 数据存储无限循环，导致 uTools 卡死无响应（包括 `utools.db.*`、`utools.dbStorage.*`、`utools.dbCryptoStorage.*` 的所有写操作；约束出处与高频写入场景见 `references/uTools-Plugin-Dev-Record.md` 场景 1）
 
-## Vite + Vue 项目结构（现代前端开发）
+## 激活契约
 
-### 目录规范（推荐）
+当本 Skill 激活时，必须遵守以下全局规则，具体约束详见各章节：
 
-静态文件（`plugin.json` / `preload.js` / `logo.png`）放在 `public/` 文件夹，Vite 构建时会自动复制到 `dist/`：
+1. **查文档优先**：`utools.*` / `ubrowser.*` / `plugin.json` / `preload.js` 相关疑问，先读 `references/uTools-Dev-Doc.md` 对应章节再回答，不凭记忆编造 API
+2. **区分 dev/build 模式**：开发期用 `public/` + `development.main` 接入热更新；发布产物 `dist/` 不得包含 `development` 字段，由 vite 插件构建后自动清理
+3. **preload 透明**：preload 遵循 CommonJS，源码必须清晰可读，不压缩、不混淆、不打包
+4. **DB 合规**：`utools.db` 只存用户主动创建的数据；缓存、日志、临时状态禁止写入（可能导致审核拒绝或下架），改用 `utools.dbStorage` 或内存变量
+5. **平台兼容**：文件路径用 `path.join()` 或相对地址拼接，不硬编码路径分隔符
+
+## 项目模板
+
+uTools 插件本质是编译为纯 HTML/CSS/JS 的 Web 应用，任何前端框架均可。官方提供 **Vue 3 + Vite** 与 **React + Vite** 两套模板，可在 uTools 开发者工具中通过"新建 Vue+Vite 工程" / "新建 React+Vite 工程"按钮一键创建。
+
+### 模板选择
+
+| 模板 | 来源 | 依赖量 | 适合 |
+|------|------|--------|------|
+| Vue 3 + Vite | uTools 官方（开发者工具一键创建） | 少（vue + vite） | 大多数插件（默认推荐） |
+| React + Vite | uTools 官方（开发者工具一键创建） | 少（react + vite） | React 技术栈团队 |
+| uTools Vite 模板 | gitee: q2316367743/vite-utools-template | 较重（+tdesign +pinia +router +unocss） | 复杂交互、需要成熟 UI 组件 |
+
+默认推荐官方 **Vue 3 + Vite** 模板。
+
+### Vue 3 + Vite 模板（官方）
+
+#### 目录结构
+
+静态文件（`plugin.json` / `preload.js` / `logo.png`）放在 `public/`，Vite 构建时自动复制到 `dist/`：
 
 ```
 project/
@@ -156,7 +180,6 @@ project/
 ├── dist/                       # 构建产物（可拖入开发者工具打包）
 ├── src/                        # Vue 源码
 │   ├── components/
-│   ├── composables/
 │   ├── App.vue
 │   └── main.ts
 ├── index.html                  # Vite 入口
@@ -166,13 +189,25 @@ project/
 
 `public/plugin.json` 中 `main` 直接写 `"index.html"`，不需要特殊处理。
 
-### vite.config.ts 关键配置（推荐）
+#### vite.config.ts 关键配置
 
 ```typescript
 import { defineConfig, type Plugin } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import fs from 'node:fs'
 import path from 'node:path'
+
+// 必须：构建后自动移除 plugin.json 的 development 字段，保证发布版干净
+const stripDevelopmentField = (): Plugin => ({
+  name: 'strip-development-field',
+  closeBundle() {
+    const p = path.resolve(process.cwd(), 'dist', 'plugin.json')
+    if (!fs.existsSync(p)) return
+    const json = JSON.parse(fs.readFileSync(p, 'utf8'))
+    delete json.development
+    fs.writeFileSync(p, JSON.stringify(json, null, 2) + '\n', 'utf8')
+  },
+})
 
 // 可选：构建前检查 plugin.json 是否合法
 // uTools 解析 JSON 时不支持 BOM 头，且格式错误会直接报错
@@ -190,158 +225,175 @@ const validatePluginJson = (): Plugin => ({
 })
 
 export default defineConfig({
-  plugins: [vue(), validatePluginJson()],
-  base: './',
-  publicDir: 'public',             // public/ 中的文件构建时自动复制到 dist/
+  plugins: [vue(), stripDevelopmentField(), validatePluginJson()],
+  base: './',                    // 必须，适配 uTools 的 file:// 协议
+  publicDir: 'public',           // public/ 中的文件构建时自动复制到 dist/
   build: {
     outDir: 'dist',
-    emptyOutDir: true,
-    target: 'es2021',              // 匹配 Chromium 91 的完整 JS 支持范围（ES2022 仅部分支持）
+    emptyOutDir: true,           // 每次构建前清空 dist/，防止残留旧文件
+    target: 'es2021',            // 匹配 Chromium 91 的完整 JS 支持范围（ES2022 仅部分支持）
   },
   server: {
     host: '127.0.0.1',
     port: 5173,
-    strictPort: true,              // 端口被占用时报错，不自动换端口
+    strictPort: true,            // 端口被占用时报错，不自动换端口
   },
 })
 ```
 
-关键点：
-- `base: './'` — 必须，适配 uTools 的 `file://` 协议
-- `publicDir: 'public'` — 利用 Vite 内置功能自动复制静态文件，无需额外插件
-- `validatePluginJson` 插件 — 可选，构建前检查 `plugin.json` 是否合法（防 BOM、防格式错误）
-- `target: 'es2021'` — 明确构建目标，Chromium 91 完整支持 ES2021，ES2022 仅部分支持
-- `strictPort: true` — 端口被占用时报错而不是自动换端口，避免混淆
-- `emptyOutDir: true` — 每次构建前清空 dist/，防止残留旧文件
+#### package.json 关键依赖
 
-### 开发流程
-1. `pnpm dev` 启动开发服务器
-2. `plugin.json` 增加 `development.main` 指向 `http://127.0.0.1:5173/index.html`
-3. uTools 开发者工具 → 接入开发
+```json
+{
+  "type": "module",
+  "dependencies": { "vue": "^3.5.13" },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "vite": "^6.0.11"
+  }
+}
+```
+
+#### 入口组件（功能路由）
+
+入口组件必须在 `onMounted`（Vue）/ `useEffect`（React）中注册 `utools.onPluginEnter`，接收 `action.code` 做功能路由：
+
+```typescript
+// src/main.ts
+import { createApp } from 'vue'
+import App from './App.vue'
+createApp(App).mount('#app')
+```
+
+```vue
+<!-- src/App.vue -->
+<script setup lang="ts">
+import { onMounted } from 'vue'
+
+onMounted(() => {
+  utools.onPluginEnter(({ code, payload }) => {
+    // 按 action.code 分发到对应功能
+  })
+})
+</script>
+```
+
+#### 初始化流程
+
+1. 在 uTools 开发者工具中"新建 Vue+Vite 工程"一键创建，或按上述目录结构手动搭建
+2. 编写 `public/plugin.json`（main/preload/logo/features）与 `public/preload.js`（CommonJS，挂载到 `window.preload`）
+3. 编写 `src/main.ts` + `src/App.vue`（最小可运行示例）
+4. 安装依赖：`pnpm install`
+5. 开发：`pnpm dev`，`plugin.json` 增加 `development.main` 指向 `http://127.0.0.1:5173/index.html`，在开发者工具中"接入开发"
+6. 构建：`pnpm build`，产物在 `dist/`
+7. 打包：在 uTools 开发者工具中选择 `dist/plugin.json`
 
 > **调试**：进入插件后按 `Ctrl+Shift+I` 打开开发者工具；在开发者工具中开启"退出到后台立即结束运行"，确保每次重新进入都加载最新代码。
 
-### 构建与发布流程
-1. `pnpm build` → 产物输出到 `dist/`
-2. `public/` 中的 `plugin.json` / `preload.js` / `logo.png` 自动复制到 `dist/`
-3. 确保 `dist/` 内有 `package.json`（内容 `{ "type": "commonjs" }`），否则 preload.js 的 `require` 会报错；将该文件放入 `public/` 即可随构建自动复制到 `dist/`
-4. preload 的 Node.js 依赖安装到 `dist/` 内的 `node_modules`（与 preload.js 同级，不编译不打包，源码清晰可读）
-5. 在开发者工具中选择 `dist/plugin.json` 打包
+**验证清单**（完成后逐项确认）：
+- [ ] `pnpm dev` 能正常启动，浏览器可打开 `http://127.0.0.1:5173`
+- [ ] `pnpm build` 成功，`dist/` 内存在 `plugin.json` / `preload.js` / `index.html`，且 `dist/plugin.json` 中 `development` 字段已被自动移除
+- [ ] 在 uTools 开发者工具中能正常加载 `dist/plugin.json`
 
-### preload.js 依赖处理
-| 类型 | 处理方式 |
-|------|---------|
-| 前端依赖（vue、element-plus） | 正常 npm 安装，Vite 自动打包 |
-| Node.js 依赖（fs-extra 等纯 JS 模块） | 源码放在 preload.js 同级 node_modules，不编译不打包 |
+### React + Vite 模板（官方）
 
-### 附录：另一种方案（静态文件放项目根目录）
+#### 目录结构
 
-若不想用 `public/` 文件夹，也可将 `plugin.json` / `preload.js` / `logo.png` 放在**项目根目录**，通过 `vite-plugin-static-copy` 插件复制到 `dist/`。这种方式需要额外处理 `plugin.json` 的 `main` 路径。
+与 Vue 模板一致，仅前端源码与构建插件不同：
 
 ```
 project/
-├── dist/
-├── src/
-├── index.html
-├── plugin.json                # 根目录 → 构建时复制到 dist/
-├── preload.js                 # 根目录 → 构建时复制到 dist/
-├── logo.png                   # 根目录 → 构建时复制到 dist/
-├── vite.config.ts
+├── public/
+│   ├── plugin.json
+│   ├── preload.js
+│   └── logo.png
+├── dist/                       # 构建产物
+├── src/                        # React 源码
+│   ├── App.jsx
+│   └── main.jsx
+├── index.html                  # script 指向 /src/main.jsx
+├── vite.config.js
 └── package.json
 ```
 
-根目录的 `plugin.json` 中 `main` 写 `"dist/index.html"`（开发模式），构建后通过钩子改为 `"index.html"`（打包模式）。
+#### vite.config.js 关键配置
 
-```typescript
+与 Vue 模板相同的 `stripDevelopmentField` / `validatePluginJson` 插件，仅构建插件换为 `@vitejs/plugin-react`：
+
+```javascript
 import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import { viteStaticCopy } from 'vite-plugin-static-copy'
-import { readFileSync, writeFileSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
-import { dirname, resolve } from 'node:path'
-
-const __dirname = dirname(fileURLToPath(import.meta.url))
+import react from '@vitejs/plugin-react'
+// 插件定义与 Vue 模板相同，从上方"Vue 3 + Vite 模板"章节复制
+// stripDevelopmentField / validatePluginJson 两个函数定义后使用
 
 export default defineConfig({
+  plugins: [react(), stripDevelopmentField(), validatePluginJson()],
   base: './',
-  plugins: [
-    vue(),
-    viteStaticCopy({
-      targets: [
-        { src: 'plugin.json', dest: '.' },
-        { src: 'preload.js', dest: '.' },
-        { src: 'logo.png', dest: '.' }
-      ]
-    }),
-    {
-      name: 'fix-dist-plugin-json-main',
-      closeBundle() {
-        const p = resolve(__dirname, 'dist', 'plugin.json')
-        const json = JSON.parse(readFileSync(p, 'utf8'))
-        json.main = 'index.html'
-        writeFileSync(p, JSON.stringify(json, null, 2), 'utf8')
-      }
-    }
-  ],
-  build: { outDir: 'dist', emptyOutDir: true }
+  publicDir: 'public',
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true,
+    target: 'es2021',            // 匹配 Chromium 91
+  },
+  server: {
+    host: '127.0.0.1',
+    port: 5173,
+    strictPort: true,
+  },
 })
 ```
 
-> `closeBundle` 钩子是必要步骤——文件复制到 `dist/` 后，`plugin.json` 的 `main` 从 `"dist/index.html"` 改为 `"index.html"`，否则 uTools 会去 `dist/dist/index.html` 找入口。
+#### package.json 关键依赖
 
-推荐 `public/` 方案，少一个依赖、少一段钩子代码。
+```json
+{
+  "type": "module",
+  "dependencies": { "react": "^18.3.1", "react-dom": "^18.3.1" },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^5.4.11"
+  }
+}
+```
 
-## 项目初始化
+> **版本说明**：React 以 uTools 官方模板当前版本为准。手写骨架建议 React 18 + Vite 5（React 18 与 Vite 5 在 Chromium 91 环境兼容性更稳妥）；React 19 / Vite 6 在 Chromium 91 上的兼容性需验证。
 
-当用户需要**创建新 uTools 插件项目**时，先让用户选择模板：
+#### 入口组件
 
-### 模板选择
+```jsx
+// src/main.jsx
+import React from 'react'
+import { createRoot } from 'react-dom/client'
+import App from './App.jsx'
+createRoot(document.getElementById('app')).render(<App />)
+```
 
-| | 默认 Vite 模板 | uTools Vite 模板（gitee: q2316367743） |
-|---|---|---|
-| 来源 | 按本文件章节结构生成 | gitee: q2316367743/vite-utools-template |
-| 依赖量 | 极少（仅 vue + vite） | 较重（+tdesign+pinia+unocss+...） |
-| UI 库 | 无（自选） | TDesign Vue Next |
-| 路由/状态 | 无（自选） | Vue Router + Pinia |
-| preload | 手写 | 完整 API 代理层（inject.js） |
-| 构建输出 | dist/ | src-utools/dist/ |
-| 适合 | 简单插件、学习、定制 | 复杂交互、需要成熟 UI 组件 |
+```jsx
+// src/App.jsx
+import { useEffect } from 'react'
 
-向用户展示上述对比，默认推荐**默认 Vite 模板**。用户明确选择后再进入对应初始化流程。
+export default function App() {
+  useEffect(() => {
+    utools.onPluginEnter(({ code, payload }) => {
+      // 按 action.code 分发到对应功能
+    })
+  }, [])
+  return <div>Hello uTools</div>
+}
+```
 
-> 💡 **如果选错了怎么办**：两个模板可以互相切换。如果 clone uTools Vite 模板后觉得太重，删除当前目录重新选择默认 Vite 模板即可；反之亦然。
+初始化流程与验证清单同 Vue 模板（仅 `index.html` 的 script 指向 `/src/main.jsx`）。
 
-### 默认 Vite 模板初始化流程
+### uTools Vite 模板（gitee，进阶）
 
-> 如果你已经熟悉 uTools 开发，可以跳过步骤 1-5 直接创建项目骨架。
-
-按本文件"Vite + Vue 项目结构"章节的结构创建项目：
-
-1. 创建目录结构（public/ + src/ + index.html + vite.config.ts + package.json）
-2. 配置 `vite.config.ts`（base: './'、publicDir、target 等）
-3. 编写 `public/plugin.json`（main/preload/logo/features）
-4. 编写 `public/preload.js`（CommonJS，挂载到 window.preload）
-5. 编写 `src/main.ts` + `src/App.vue`（最小可运行示例）
-6. 安装依赖：`pnpm install`
-7. 开发：`pnpm dev`，配置 `development.main` 热更新
-8. 构建：`pnpm build`，产物在 `dist/`
-9. 打包：在 uTools 开发者工具中选择 `dist/plugin.json`
-
-**验证清单**（完成后逐项确认）：
-- [ ] `pnpm dev` 能正常启动，浏览器可打开 `http://127.0.0.1:5173`
-- [ ] `pnpm build` 成功，`dist/` 内存在 `plugin.json` / `preload.js` / `index.html`
-- [ ] 在 uTools 开发者工具中能正常加载 `dist/plugin.json`
-
-### uTools Vite 模板初始化流程
-
-> 如果你已经熟悉 uTools 开发，可以跳过步骤 4-8 的详细说明。
+> 适合复杂交互、需要成熟 UI 组件的场景；简单插件优先选官方模板。
 
 1. 克隆模板：`git clone https://gitee.com/q2316367743/vite-utools-template.git <项目名>`
 2. 进入目录：`cd <项目名>`
 3. 安装依赖：`pnpm install`
 4. 检查安全漏洞：`pnpm audit`
    - 预期结果：模板依赖版本可能落后，通常仅报 low/moderate 级别警告，可忽略
-   - 如果报 critical 级别，请反馈给仓库维护者或选择默认 Vite 模板
+   - 如果报 critical 级别，请反馈给仓库维护者或选择官方模板
 5. 修改项目信息：
    - `src/global/Constant.ts` — 修改项目名、版本等字段
    - `src-utools/plugin.json` — 修改 `name`/`title`/`description`/`features.cmds`
@@ -363,38 +415,23 @@ export default defineConfig({
 - [ ] `pnpm build` 成功，`src-utools/dist/` 内存在 `plugin.json` / `preload.js` / `index.html`
 - [ ] 在 uTools 开发者工具中能正常加载 `src-utools/dist/plugin.json`
 
-## preload.js 开发要点
+## 核心规范
 
-### 模块导入
-```js
-// 错误：解构导入
-const { fs } = require('fs')
+### plugin.json 配置参考
 
-// 正确：整体导入
-const fs = require('fs')
-```
+#### 关键字段
 
-### package.json type 字段
-preload.js 同级目录必须存在 `package.json` 且设置 `"type": "commonjs"`：
-```json
-{ "type": "commonjs" }
-```
-否则 Node.js 可能以 ESM 模式解析导致 `require` 报错。若使用 `public/` 方案，需确保构建后的 `dist/` 目录也有此文件。
+| 字段 | 说明 |
+|------|------|
+| `main` | 入口页面，相对 `plugin.json` 的路径，必须 `.html`（如 `"index.html"`） |
+| `preload` | preload 脚本路径，可选但几乎所有实用插件都需要 |
+| `logo` | 插件图标（256×256 PNG） |
+| `pluginSetting` | 窗口行为配置（`single` 单实例、`height` 窗口高度等） |
+| `features` | 功能定义，`cmds` 定义搜索指令 |
+| `development` | 仅开发期字段，构建发布前必须移除（由 vite 插件自动处理，见 dev/build 双模式） |
+| `tools` | 将插件能力暴露给 AI Agent（需搭配 `utools.registerTool`） |
 
-### iframe 中 API 调用
-HTML 中嵌入 iframe 时，uTools API 在 iframe 中不可用：
-```js
-// 在 iframe 中通过 parent 访问
-window.parent.utools.redirect('备忘录')
-window.parent.preload.yourMethod()
-```
-
-### 文件路径引用
-开发中涉及文件地址引用**使用相对地址**，uTools 打包后绝对路径失效。
-
-## plugin.json 配置参考
-
-### features.cmds 匹配指令类型
+#### features.cmds 匹配指令类型
 
 | type 值 | 用途 | 示例 |
 |---------|------|------|
@@ -405,9 +442,10 @@ window.parent.preload.yourMethod()
 | `over` | 任意文本匹配 | `[{ "type": "over", "label": "文本处理" }]` |
 | `window` | 活动窗口匹配 | `[{ "type": "window", "match": { "app": ["chrome.exe"] } }]` |
 
-### development 字段（开发模式）
+#### development 字段（开发模式）
 
 开发阶段配置热更新入口：
+
 ```json
 {
   "development": {
@@ -415,9 +453,8 @@ window.parent.preload.yourMethod()
   }
 }
 ```
-构建发布前需删除此字段。
 
-### tools 字段（AI Agent 工具）
+#### tools 字段（AI Agent 工具）
 
 `plugin.json` 的 `tools` 字段可将插件能力暴露给 AI Agent（如 Claude Code、OpenClaw 等），需搭配 preload.js 中的 `utools.registerTool` 运行时注册：
 
@@ -434,11 +471,153 @@ window.parent.preload.yourMethod()
 
 详见 `references/uTools-Dev-Doc.md` 中"tools 配置"章节。
 
-### AI Agent 专用模式（无 UI）
+#### AI Agent 专用模式（无 UI）
 
 当插件仅服务 AI Agent 时，可采用最小配置：
 - **无需** `main` 字段和 `features` 数组
 - **必需** `logo`、`preload`、`tools`
+
+### preload.js 规范
+
+#### 铁律
+
+1. **CommonJS 规范**：使用 `require` / `module.exports`，**不可混淆、压缩、打包**
+2. **源码透明**：引入的第三方 npm 模块源码必须清晰可读，连同源码一起提交
+3. **最小权限**：只暴露必要的函数，不要把整个 `fs` 模块暴露给渲染进程
+4. **能力暴露**：通过 `window.preload = {...}` 注入渲染进程
+
+#### 模块导入
+
+```js
+// 错误：解构导入
+const { fs } = require('fs')
+
+// 正确：整体导入
+const fs = require('fs')
+```
+
+#### package.json type 字段
+
+preload.js 同级目录必须存在 `package.json` 且设置 `"type": "commonjs"`：
+
+```json
+{ "type": "commonjs" }
+```
+
+否则 Node.js 可能以 ESM 模式解析导致 `require` 报错。若使用 `public/` 方案，需确保构建后的 `dist/` 目录也有此文件。
+
+#### 依赖处理
+
+| 类型 | 处理方式 |
+|------|---------|
+| 前端依赖（vue、element-plus） | 正常 npm 安装，Vite 自动打包 |
+| Node.js 依赖（fs-extra 等纯 JS 模块） | 源码放在 preload.js 同级 node_modules，不编译不打包 |
+
+#### iframe 中 API 调用
+
+HTML 中嵌入 iframe 时，uTools API 在 iframe 中不可用：
+
+```js
+// 在 iframe 中通过 parent 访问
+window.parent.utools.redirect('备忘录')
+window.parent.preload.yourMethod()
+```
+
+#### 文件路径引用
+
+开发中涉及文件地址引用**使用相对地址**，uTools 打包后绝对路径失效；preload 内拼接路径用 `path.join()`，不硬编码分隔符。
+
+### dev/build 双模式
+
+| 模式 | plugin.json | 接入目录 | 依赖 |
+|------|-------------|----------|------|
+| dev（开发） | 保留 `development.main` 指向 dev server | `public/` | 开发服务器运行中 |
+| build（发布） | 无 `development` 字段 | `dist/` | 无 |
+
+开发期流程：`pnpm dev` 启动开发服务器 → `public/plugin.json` 配置 `development.main` 指向 `http://127.0.0.1:5173/index.html` → 开发者工具"接入开发"，代码改动热更新。
+
+发布期流程：`pnpm build` → `dist/` 内为发布产物（`public/` 镜像 + 编译后的 `assets/`），由 vite 插件自动移除 `development` 字段 → 开发者工具选择 `dist/plugin.json` 打包。
+
+创建项目时**必须**配置 `stripDevelopmentField` 插件，确保 `dist/plugin.json` 自动干净。
+
+**打包前检查**：`dist/` 必须存在 `plugin.json`、`logo.png`、`preload.js`（及 `package.json`，内容 `{ "type": "commonjs" }`——将该文件放入 `public/` 即可随构建自动复制）。如果用户报告"插件打不开"，先检查这几个文件是否缺失。
+
+### 数据存储
+
+#### 三种存储的分工
+
+| 存储 | 特点 | 适合 |
+|------|------|------|
+| `utools.db` | 同步数据库，**跨设备同步** | 用户主动创建的数据（笔记、收藏、文档、配置） |
+| `utools.dbStorage` | 本地 KV 存储，不同步 | 缓存、临时状态、非关键数据 |
+| `utools.dbCryptoStorage` | 加密 KV 存储，不同步 | 敏感配置（密钥、token） |
+
+#### DB 合规红线
+
+`utools.db`（同步数据库）**只允许存**：
+- 用户主动创建的内容（笔记、收藏、文档）
+- 用户主动修改的配置
+- 需要跨设备保持一致的数据
+
+**禁止存入 `utools.db`**：
+- 缓存、运行状态、临时配置
+- 日志、统计计数、访问记录
+- 缩略图、搜索索引等可重新生成的数据
+- 剪贴板数据、系统监听数据
+
+违反此红线可能导致**审核拒绝或下架**。临时数据用 `utools.dbStorage`（不同步）或内存变量。
+
+#### db 操作约束
+
+- **写操作间隔 ≥ 300ms**：两次写操作之间的间隔不能小于 300ms，否则会触发数据存储无限循环导致 uTools 卡死（详见"关键约束"；出处与高频写入场景见 `references/uTools-Plugin-Dev-Record.md` 场景 1）
+- **文档组织**：用 `_id` 前缀组织分类（如 `memo/20240819-001`），便于按前缀批量查询；一条记录一个文档，避免多设备冲突
+- **更新文档需带版本字段**，否则更新失败（具体字段名查 `references/uTools-Dev-Doc.md` 3.8 数据存储章节）
+
+## API 分类索引
+
+以下只列大类，**具体 API 签名和用法必须查 `references/uTools-Dev-Doc.md` 对应章节**：
+
+| 分类 | 说明 | 查阅章节 |
+|------|------|----------|
+| 事件 | 插件生命周期回调（进入/退出/分离/同步） | 3.1 事件 |
+| 窗口 | 主窗口控制、子输入框、独立窗口创建 | 3.2 窗口 |
+| 复制 | 文本/图片/文件复制到剪贴板 | 3.3 复制 |
+| 输入 | 向外部应用粘贴文本/图片/文件 | 3.4 输入 |
+| 系统 | 通知、文件操作、路径获取、系统信息 | 3.5 系统 |
+| 屏幕 | 取色、截图、显示器信息 | 3.6 屏幕 |
+| 用户 | 获取用户信息、临时 token | 3.7 用户 |
+| 数据存储 | `db` / `dbStorage` / `dbCryptoStorage` CRUD | 3.8 数据存储 |
+| 动态指令 | 运行时增删 feature | 3.9 动态指令 |
+| 模拟按键 | 键盘/鼠标模拟 | 3.10 模拟按键 |
+| 用户付费 | 付费/支付/订单 | 3.11 用户付费 |
+| ubrowser | 可编程自动化浏览器（链式 API） | 3.12 ubrowser |
+| 工具注册 | 为 AI Agent 提供能力（`registerTool`） | 3.13 工具注册 |
+| AI | 调用 uTools 内置 AI 能力 | 3.14 AI |
+| Sharp | 图像处理 | 3.15 Sharp 集成 |
+| FFmpeg | 音视频处理 | 3.16 FFmpeg 集成 |
+
+## AI 行为准则
+
+当本 Skill 激活并编写 uTools 插件代码时，必须遵守：
+
+### 必须做
+
+1. 创建项目时配置 `stripDevelopmentField` 插件与 `base: './'`，确保构建产物干净
+2. preload 保持源码可读，同级目录放 `{"type": "commonjs"}` 的 `package.json`
+3. 入口组件注册 `utools.onPluginEnter`，接收 `action.code` 做功能路由
+4. 用 `path.join()` 或相对地址处理路径，不硬编码分隔符
+5. db 文档用前缀 `_id` 组织（如 `memo/20240819-001`），更新时带版本字段
+6. 需要具体 API 时读 `references/uTools-Dev-Doc.md` 对应章节，不凭记忆猜
+
+### 禁止做
+
+1. 禁止把缓存/日志/临时数据写入 `utools.db`（可能导致审核拒绝或下架）
+2. 禁止在 preload 中使用 ES module 语法（`import` / `export`）
+3. 禁止压缩/混淆 preload 代码
+4. 禁止发布版 `plugin.json` 保留 `development` 字段
+5. 禁止在发布版中加载外部网络资源（`http://` / `https://`），开发期可以
+6. 禁止把整个 `fs` 模块暴露给渲染进程（最小权限原则）
+7. 禁止不查文档直接编写 uTools API 调用
 
 ## 移植第三方库 checklist
 

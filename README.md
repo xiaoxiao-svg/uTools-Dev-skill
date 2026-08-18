@@ -15,7 +15,7 @@ uTools-Dev/
     └── uTools-FAQ.md               # 常见问题汇总（开发调试 / 数据存储 / 打包发布 / 付费 / 运行时错误）
 ```
 
-- **SKILL.md** — 定义 skill 的触发条件、角色体系、使用方式、能力边界，提供核心 API 速览、关键约束、Vite 项目配置
+- **SKILL.md** — 定义 skill 的触发条件、角色体系、使用方式、能力边界，提供核心 API 速览、关键约束、激活契约、项目模板（Vue/React）、核心规范、API 分类索引、AI 行为准则
 - **uTools-Dev-Doc.md** — 完整的 uTools API 文档，涵盖事件、窗口、数据库、ubrowser、AI、FFmpeg 等
 - **uTools-Server-API.md** — 服务端 API 文档（获取用户信息、订单查询、支付回调）
 - **uTools-Plugin-Dev-Record.md** — 社区开发实战记录
