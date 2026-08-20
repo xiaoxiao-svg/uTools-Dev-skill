@@ -140,6 +140,7 @@ API 参考：
 - 正则表达式中的反斜杠 `\` 需写成 `\\`
 - 发布前检查移除 `.git/`、`.vscode/`、`*.js.map`、`*.css.map`
 - **两次 db 操作之间的时间间隔不能小于 300ms**，否则会触发 uTools 数据存储无限循环，导致 uTools 卡死无响应（包括 `utools.db.*`、`utools.dbStorage.*`、`utools.dbCryptoStorage.*` 的所有写操作；约束出处与高频写入场景见 `references/uTools-Plugin-Dev-Record.md` 场景 1）
+- **插件窗口高度保持默认**：不要设置 `pluginSetting.height` 固定高度——不同屏幕比例/系统缩放下显示异常（内容裁切或留白过大）。确需调整时，进入插件后用 `utools.setExpendHeight` 按内容/屏幕动态设置（详见 `references/uTools-Plugin-Dev-Record.md` 场景 3）
 
 ## 激活契约
 
@@ -426,7 +427,7 @@ export default function App() {
 | `main` | 入口页面，相对 `plugin.json` 的路径，必须 `.html`（如 `"index.html"`） |
 | `preload` | preload 脚本路径，可选但几乎所有实用插件都需要 |
 | `logo` | 插件图标（256×256 PNG） |
-| `pluginSetting` | 窗口行为配置（`single` 单实例、`height` 窗口高度等） |
+| `pluginSetting` | 窗口行为配置（`single` 单实例；**不要设置 `height`**，保持默认高度，见"关键约束"） |
 | `features` | 功能定义，`cmds` 定义搜索指令 |
 | `development` | 仅开发期字段，构建发布前必须移除（由 vite 插件自动处理，见 dev/build 双模式） |
 | `tools` | 将插件能力暴露给 AI Agent（需搭配 `utools.registerTool`） |
@@ -618,6 +619,7 @@ window.parent.preload.yourMethod()
 5. 禁止在发布版中加载外部网络资源（`http://` / `https://`），开发期可以
 6. 禁止把整个 `fs` 模块暴露给渲染进程（最小权限原则）
 7. 禁止不查文档直接编写 uTools API 调用
+8. 禁止设置 `pluginSetting.height` 固定窗口高度（不同屏幕比例/缩放下显示异常，保持默认；确需调整时用 `utools.setExpendHeight` 动态设置）
 
 ## 移植第三方库 checklist
 

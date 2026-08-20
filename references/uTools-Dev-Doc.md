@@ -327,6 +327,8 @@ uTools 仅识别 html + css + javascript，使用 vite、webpack 等工具时，
 
 配置插件应用初始高度，可以通过 api `utools.setExpendHeight` 动态修改。
 
+> ⚠️ **建议保持默认，不要配置此字段**：固定高度在不同屏幕比例/系统缩放下显示异常（内容裁切或留白过大）。确需调整时，进入插件后调用 `utools.setExpendHeight` 动态设置（见 3.2 窗口章节）。
+
 #### 插件应用功能字段说明
 
 ##### `features`
@@ -1188,6 +1190,8 @@ utools.showMainWindow();
 #### `utools.setExpendHeight(height)`
 
 设置插件应用在主窗口中的高度，单位为像素。
+
+> ⚠️ **动态高度是唯一推荐的高度调整方式**：不要通过 `pluginSetting.height` 固定窗口高度（不同屏幕比例/缩放下显示异常）。确需更大显示空间时，进入插件后按内容或屏幕自适应调用本方法。
 
 **类型定义**
 
