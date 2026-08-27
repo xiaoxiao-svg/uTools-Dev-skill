@@ -100,6 +100,7 @@ keywords: [utools, ubrowser, preload.js, plugin.json, utools插件, uTools开发
 ### 超出范围时的处理
 当遇到以下情况时，我会明确告知你"这超出了本 Skill 的可靠知识范围"，并给出建议方向：
 - API 行为与文档描述不一致（可能是 uTools 版本差异）
+- 本地参考文档未收录目标 API / 特性：先按"查证完成判定"的否定协议检索确证，再指引查阅 uTools 官方开发者文档核实最新版本支持情况
 - 涉及 uTools 未公开的内部机制
 - 需要反编译或修改 uTools 主程序才能实现的功能
 - 问题描述模糊、无法确定是 uTools 层还是框架层的问题
@@ -110,6 +111,7 @@ keywords: [utools, ubrowser, preload.js, plugin.json, utools插件, uTools开发
 
 API 参考：
 `references/uTools-Dev-Doc.md`
+顶部有自动生成的"**符号索引**"——查 API **先查索引表按行号直达条目**；编辑该文档后运行 `bash scripts/build-symbol-index.sh` 刷新行号（`--check` 校验是否最新）
 
 服务端 API 参考：
 `references/uTools-Server-API.md`
@@ -121,6 +123,16 @@ API 参考：
 `references/uTools-FAQ.md`
 
 遇到 `utools.*` / `ubrowser.*` / `plugin.json` / `preload.js` 相关问题时，**必须先查阅该文档对应章节**再回答（API 使用、uTools 开发等官方规范问题查看 API 参考，实际可能遇到的问题查看开发记录参考）。
+
+## 查证完成判定
+
+宣布任何基于参考文档的结论前，逐项自检；未通过就继续查证，或降低结论强度：
+
+1. **检索有效**：区分"命令失败"与"未命中"。搜索命令报错、非零退出码、或空输出但连 `utools` 这类必命中关键词也搜不到时，说明是命令或路径错了——先修检索，不得据此下任何结论
+2. **边界完整**：优先用 Dev-Doc 顶部"符号索引"按行号直达条目；定位到章节后从节首标题读到下一同级标题才算读完（读单个 API 须读到末尾的参数说明和示例），**禁止只读半节就下结论**
+3. **否定从严**：宣布"无此 API / 文档未提及 X"前，必须已 (a) 用至少 2 组不同关键词检索过（符号名 + 功能同义词），(b) 浏览过所属大类章节整节，(c) 在回答中列出已检关键词与范围。说不出检索记录就只能表述为"我在 X 范围内未找到"；确认本地未收录时统一措辞为"**本地参考文档未收录**"，并指引查阅 uTools 官方文档（见"超出范围时的处理"）
+
+正向结论不要求附检索记录，但第 1、2 条仍须满足。
 
 ## 核心 API 速览
 
@@ -151,6 +163,7 @@ API 参考：
 3. **preload 透明**：preload 遵循 CommonJS，源码必须清晰可读，不压缩、不混淆、不打包
 4. **DB 合规**：`utools.db` 只存用户主动创建的数据；缓存、日志、临时状态禁止写入（可能导致审核拒绝或下架），改用 `utools.dbStorage` 或内存变量
 5. **平台兼容**：文件路径用 `path.join()` 或相对地址拼接，不硬编码路径分隔符
+6. **查证完整**：基于文档下结论前按上方"查证完成判定"自检；否定性结论（无此 API / 未收录）必须附检索记录
 
 ## 项目模板
 
@@ -608,7 +621,7 @@ window.parent.preload.yourMethod()
 3. 入口组件注册 `utools.onPluginEnter`，接收 `action.code` 做功能路由
 4. 用 `path.join()` 或相对地址处理路径，不硬编码分隔符
 5. db 文档用前缀 `_id` 组织（如 `memo/20240819-001`），更新时带版本字段
-6. 需要具体 API 时读 `references/uTools-Dev-Doc.md` 对应章节，不凭记忆猜
+6. 需要具体 API 时先查 `references/uTools-Dev-Doc.md` 顶部的符号索引、再精读对应章节，不凭记忆猜
 
 ### 禁止做
 
@@ -620,6 +633,7 @@ window.parent.preload.yourMethod()
 6. 禁止把整个 `fs` 模块暴露给渲染进程（最小权限原则）
 7. 禁止不查文档直接编写 uTools API 调用
 8. 禁止设置 `pluginSetting.height` 固定窗口高度（不同屏幕比例/缩放下显示异常，保持默认；确需调整时用 `utools.setExpendHeight` 动态设置）
+9. 禁止未经"查证完成判定"自检就宣布否定性结论（"没有此 API"、"文档不支持此功能"）；确认本地未收录时，表述为"本地参考文档未收录"
 
 ## 移植第三方库 checklist
 

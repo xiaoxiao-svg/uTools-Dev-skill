@@ -6,6 +6,177 @@
 > - npm → [淘宝镜像](https://npmmirror.com)
 > - GitHub → [Gitee](https://gitee.com) 或 [ghproxy](https://ghproxy.com)
 
+<!-- SYMBOL-INDEX:START -->
+<!-- 本区块由 scripts/build-symbol-index.sh 自动生成，请勿手改；编辑本文档后重新运行脚本刷新行号 -->
+
+## 0. 符号索引
+
+查询某 API / 主题是否收录于本文档，**先查本表**，不要直接对全文做关键词检索：
+
+- **命中** → 从"起始行"读起，读到下一行条目之前，即该条目的完整内容；禁止只读半节就下结论
+- **未命中** → 不得直接宣布"不存在"：先换关键词（符号名 + 功能同义词）检索，再浏览所属大类章节；仍无才可表述为"本地参考文档未收录"（完整规则见 SKILL.md"查证完成判定"）
+
+| 起始行 | 条目 |
+|---|---|
+| 180 | 一、开发流程 |
+| 182 | 1.1 快速开始 |
+| 188 | 1.1 · 插件应用是什么 |
+| 192 | 1.1 · 环境要求 |
+| 203 | 1.1 · 进阶 |
+| 209 | 1.2 第一个插件应用 |
+| 213 | 1.2 · 打开 uTools 开发者工具 |
+| 217 | 1.2 · 新建项目 |
+| 232 | 1.2 · 创建工程文件夹 |
+| 239 | 1.2 · 工程文件夹下的文件 |
+| 257 | 1.2 · 开始编写插件应用 |
+| 275 | 1.2 · 接入开发 |
+| 281 | 1.3 调试插件应用 |
+| 283 | 1.3 · 每次进入插件应用加载最新代码 |
+| 287 | 1.3 · 使用开发者调试工具 |
+| 291 | 1.3 · 进阶(代码热更新) |
+| 348 | 1.4 打包为离线安装包 |
+| 368 | 1.5 发布到应用市场 |
+| 374 | 1.5 · 发布前的准备 |
+| 388 | 1.5 · 发布流程 |
+| 395 | 1.5 · 查看审核结果 |
+| 401 | 1.5 · 微信公众号 |
+| 409 | 二、插件应用基础 |
+| 411 | 2.1 插件应用目录结构 |
+| 425 | 2.1 · 源码编译 |
+| 429 | 2.1 · 第三方依赖 |
+| 436 | 2.2 plugin.json 核心配置 |
+| 440 | 2.2 · 配置文件格式 |
+| 457 | 2.2 · 基础字段说明 |
+| 480 | 2.2 · 插件应用设置字段说明 |
+| 503 | 2.2 · 插件应用功能字段说明 |
+| 556 | 2.2 · 功能指令 |
+| 578 | 2.2 · 匹配指令 |
+| 691 | 2.2 · 插件应用为 AI Agent 提供能力 |
+| 763 | 2.2 · plugin.json 配置完整示例 |
+| 903 | 2.3 preload 预加载脚本 / 使用 Node.js |
+| 905 | 2.3 · 认识 preload |
+| 909 | 2.3 · 为什么需要 preload |
+| 915 | 2.3 · preload 的定义 |
+| 921 | 2.3 · 前端使用 preload |
+| 955 | 2.3 · preload js 规范 |
+| 962 | 2.3 · 使用 Node.js |
+| 1123 | 三、API 参考 |
+| 1125 | 3.1 事件 |
+| 1129 | 3.1 · `utools.onPluginEnter(callback)` |
+| 1200 | 3.1 · `utools.onPluginOut(callback)` |
+| 1225 | 3.1 · `utools.onMainPush(callback, onSelect)` |
+| 1285 | 3.1 · `utools.onPluginDetach(callback)` |
+| 1303 | 3.1 · `utools.onDbPull(callback)` |
+| 1323 | 3.2 窗口 |
+| 1327 | 3.2 · `utools.hideMainWindow(isRestorePreWindow)` |
+| 1345 | 3.2 · `utools.showMainWindow()` |
+| 1361 | 3.2 · `utools.setExpendHeight(height)` |
+| 1379 | 3.2 · `utools.setSubInput(onChange[, placeholder[, isFocus]])` |
+| 1397 | 3.2 · `utools.removeSubInput()` |
+| 1413 | 3.2 · `utools.setSubInputValue(text)` |
+| 1429 | 3.2 · `utools.subInputFocus()` |
+| 1439 | 3.2 · `utools.subInputBlur()` |
+| 1449 | 3.2 · `utools.subInputSelect()` |
+| 1459 | 3.2 · `utools.outPlugin([isKill])` |
+| 1477 | 3.2 · `utools.redirect(label[, payload])` |
+| 1508 | 3.2 · `utools.showOpenDialog(options)` |
+| 1530 | 3.2 · `utools.showSaveDialog(options)` |
+| 1553 | 3.2 · `utools.findInPage(text[, options])` |
+| 1569 | 3.2 · `utools.stopFindInPage(action)` |
+| 1585 | 3.2 · `utools.startDrag(filePath)` |
+| 1602 | 3.2 · `utools.createBrowserWindow(url[, options][, callback])` |
+| 1742 | 3.2 · `utools.sendToParent(channel[, ...args])` |
+| 1758 | 3.2 · `utools.getWindowType()` |
+| 1778 | 3.2 · `utools.isDarkColors()` |
+| 1809 | 3.3 复制 |
+| 1811 | 3.3 · `utools.copyText(text)` |
+| 1827 | 3.3 · `utools.copyFile(filePath)` |
+| 1843 | 3.3 · `utools.copyImage(image)` |
+| 1862 | 3.3 · `utools.getCopyedFiles()` |
+| 1885 | 3.4 输入 |
+| 1889 | 3.4 · `utools.hideMainWindowPasteFile(filePath)` |
+| 1905 | 3.4 · `utools.hideMainWindowPasteImage(image)` |
+| 1924 | 3.4 · `utools.hideMainWindowPasteText(text)` |
+| 1940 | 3.4 · `utools.hideMainWindowTypeString(text)` |
+| 1958 | 3.5 系统 |
+| 1962 | 3.5 · `utools.showNotification(body[, clickFeatureCode])` |
+| 1981 | 3.5 · `utools.shellOpenPath(fullPath)` |
+| 1997 | 3.5 · `utools.shellTrashItem(fullPath)` |
+| 2013 | 3.5 · `utools.shellShowItemInFolder(fullPath)` |
+| 2029 | 3.5 · `utools.shellOpenExternal(url)` |
+| 2045 | 3.5 · `utools.shellBeep()` |
+| 2055 | 3.5 · `utools.getNativeId()` |
+| 2072 | 3.5 · `utools.getAppName()` |
+| 2082 | 3.5 · `utools.getAppVersion()` |
+| 2092 | 3.5 · `utools.getPath(name)` |
+| 2122 | 3.5 · `utools.getFileIcon(filePath)` |
+| 2140 | 3.5 · `utools.readCurrentFolderPath()` |
+| 2158 | 3.5 · `utools.readCurrentBrowserUrl()` |
+| 2178 | 3.5 · `utools.isDev()` |
+| 2196 | 3.5 · `utools.isMacOS()` |
+| 2206 | 3.5 · `utools.isWindows()` |
+| 2216 | 3.5 · `utools.isLinux()` |
+| 2228 | 3.6 屏幕 |
+| 2232 | 3.6 · `utools.screenColorPick(callback)` |
+| 2251 | 3.6 · `utools.screenCapture(callback)` |
+| 2269 | 3.6 · `utools.getPrimaryDisplay()` |
+| 2281 | 3.6 · `utools.getAllDisplays()` |
+| 2291 | 3.6 · `utools.getCursorScreenPoint()` |
+| 2301 | 3.6 · `utools.getDisplayNearestPoint(point)` |
+| 2311 | 3.6 · `utools.getDisplayMatching(rect)` |
+| 2321 | 3.6 · `utools.screenToDipPoint(point)` |
+| 2331 | 3.6 · `utools.dipToScreenPoint(point)` |
+| 2341 | 3.6 · `utools.screenToDipRect(rect)` |
+| 2351 | 3.6 · `utools.dipToScreenRect(rect)` |
+| 2361 | 3.6 · `utools.desktopCaptureSources(options)` |
+| 2428 | 3.7 用户 |
+| 2430 | 3.7 · `utools.getUser()` |
+| 2459 | 3.7 · `utools.fetchUserServerTemporaryToken()` |
+| 2487 | 3.8 数据存储 |
+| 2489 | 3.8 · 本地数据库 (db) |
+| 2694 | 3.8 · dbStorage |
+| 2728 | 3.8 · dbCryptoStorage |
+| 2764 | 3.9 动态指令 |
+| 2768 | 3.9 · `utools.getFeatures([codes])` |
+| 2803 | 3.9 · `utools.setFeature(feature)` |
+| 2823 | 3.9 · `utools.removeFeature(code)` |
+| 2839 | 3.9 · `utools.redirectHotKeySetting(cmdLabel[, autocopy])` |
+| 2856 | 3.9 · `utools.redirectAiModelsSetting()` |
+| 2868 | 3.10 模拟按键 |
+| 2870 | 3.10 · `utools.simulateKeyboardTap(key[, ...modifiers])` |
+| 2893 | 3.10 · `utools.simulateMouseMove(x, y)` |
+| 2903 | 3.10 · `utools.simulateMouseClick(x, y)` |
+| 2913 | 3.10 · `utools.simulateMouseDoubleClick(x, y)` |
+| 2923 | 3.10 · `utools.simulateMouseRightClick(x, y)` |
+| 2935 | 3.11 用户付费 |
+| 2937 | 3.11 · `utools.isPurchasedUser()` |
+| 2963 | 3.11 · `utools.openPurchase(options, callback)` |
+| 2985 | 3.11 · `utools.openPayment(options, callback)` |
+| 3007 | 3.11 · `utools.fetchUserPayments()` |
+| 3035 | 3.12 ubrowser (可编程自动化浏览器) |
+| 3049 | 3.12 · 链式方法说明 |
+| 3441 | 3.12 · 示例代码 |
+| 3500 | 3.12 · ubrowser 管理 |
+| 3528 | 3.13 工具注册 (为 AI Agent 提供能力) |
+| 3530 | 3.13 · `utools.registerTool(name, handler)` |
+| 3584 | 3.13 · 最佳实践 |
+| 3595 | 3.14 AI |
+| 3597 | 3.14 · `utools.ai(option[, streamCallback])` |
+| 3736 | 3.14 · `utools.allAiModels()` |
+| 3767 | 3.15 Sharp 集成 |
+| 3771 | 3.15 · `utools.sharp([input], [options])` |
+| 3903 | 3.16 FFmpeg 集成 |
+| 3909 | 3.16 · `utools.runFFmpeg(args[, onProgress])` |
+| 4083 | 四、代码提示 |
+| 4085 | 4.1 使用 uTools API 提示 (TypeScript) |
+| 4089 | 4.1 · utools-api-types |
+| 4116 | 4.2 plugin.json 配置提示 (JSON Schema) |
+| 4120 | 4.2 · 远程地址 |
+| 4128 | 4.2 · 本地访问 |
+| 4136 | 4.2 · 跟随 `utools-api-types` 安装 |
+| 4146 | 五、服务端 API |
+
+<!-- SYMBOL-INDEX:END -->
 ## 一、开发流程
 
 ### 1.1 快速开始
