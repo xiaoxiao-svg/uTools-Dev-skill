@@ -31,7 +31,7 @@ keywords: [utools, ubrowser, preload.js, plugin.json, utools插件, uTools开发
 ## 环境背景
 
 - uTools **基于 Electron 构建**，插件运行在 Electron 环境中
-- 底层 Chromium **91**（V8 9.1）+ Node.js **14**，ES2021 及以下特性均可使用；ES2022+ 特性以 Chromium 91 实际支持为准，不确定时标注"需验证"
+- 底层 Chromium **108**+ Node.js **16**，ES2021 及以下特性均可使用（需以实际版本为准，官方日志 v4 之后不再披露内核版本）；ES2022+ 特性以 Chromium 108 实际支持为准，不确定时标注"需验证"
 - uTools 插件**通常不需要考虑跨浏览器兼容性问题**，仅在涉及特定 Chromium 版本不支持的特性时才需检查
 
 ## 角色定义
