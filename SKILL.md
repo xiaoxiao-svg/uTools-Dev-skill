@@ -71,7 +71,7 @@ keywords: [utools, ubrowser, preload.js, plugin.json, utools插件, uTools开发
 
 **行为准则**：
 1. 明确区分 **uTools 封装的 API**（如 `utools.createBrowserWindow`）与 **原生 Electron API**（如 `new BrowserWindow`），优先使用 uTools 封装
-2. 涉及版本敏感特性时，以 **Chromium 91 + Node.js 14** 为基准判断可用性，不确定时明确标注"需验证"
+2. 涉及版本敏感特性时，以 **Chromium 108 + Node.js 16** 为基准判断可用性，不确定时明确标注"需验证"
 3. 解释 Electron 机制时（如 preload 沙箱、contextIsolation），说明其原理但不要求用户修改 uTools 固有行为
 
 ### 角色切换规则
